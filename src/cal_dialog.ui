@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Cal_Dialog</class>
+ <widget class="QDialog" name="Cal_Dialog">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>457</width>
+    <height>461</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Calibration</string>
+  </property>
+  <widget class="QPushButton" name="SaveButton">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>430</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="CancelButton">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>430</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Done</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>437</width>
+     <height>411</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetDefaultConstraint</enum>
+    </property>
+    <item row="6" column="2">
+     <widget class="QSlider" name="Vg05Sli">
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set correction for Vgrid=-0.5&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="3">
+     <widget class="QLabel" name="IsVal">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Va</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Vg 0.5</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QLabel" name="VsVal">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="scaledContents">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="3">
+     <widget class="QLabel" name="Vg05Val">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QSlider" name="VsuSli">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Vs</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="2">
+     <widget class="QLineEdit" name="lineEdit_RaVal">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="2">
+     <widget class="QSlider" name="Vg40Sli">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>RaVal</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Ia</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="2">
+     <widget class="QSlider" name="VnSli">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="3">
+     <widget class="QLabel" name="Vg1Val">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="2">
+     <widget class="QSlider" name="Vg4Sli">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="0">
+     <widget class="QLabel" name="label_8">
+      <property name="text">
+       <string>VaMax</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2">
+     <widget class="QSlider" name="IsSli">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QSlider" name="IaSli">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="0">
+     <widget class="QLabel" name="label_12">
+      <property name="text">
+       <string>Vg 40</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="0">
+     <widget class="QLabel" name="label_10">
+      <property name="text">
+       <string>Vg 1</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QSlider" name="VsSli">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="3">
+     <widget class="QLabel" name="IaVal">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>Vsupply</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="3">
+     <widget class="QLabel" name="Vg4Val">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="3">
+     <widget class="QLabel" name="VsuVal">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QSlider" name="VaSli">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="3">
+     <widget class="QLabel" name="VnVal">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="3">
+     <widget class="QLabel" name="Vg40Val">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="3">
+     <widget class="QLabel" name="VaVal">
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Is</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0">
+     <widget class="QLabel" name="label_11">
+      <property name="text">
+       <string>Vg 4</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Vn</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="2">
+     <widget class="QSlider" name="Vg1Sli">
+      <property name="maximum">
+       <number>100</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="14" column="0">
+     <widget class="QLabel" name="label_14">
+      <property name="text">
+       <string>IsRsense</string>
+      </property>
+     </widget>
+    </item>
+    <item row="13" column="0">
+     <widget class="QLabel" name="label_13">
+      <property name="text">
+       <string>IaRsense</string>
+      </property>
+     </widget>
+    </item>
+    <item row="15" column="0">
+     <widget class="QLabel" name="label_15">
+      <property name="text">
+       <string>VgMax</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="2">
+     <widget class="QLineEdit" name="lineEdit_VaMax"/>
+    </item>
+    <item row="13" column="2">
+     <widget class="QLineEdit" name="lineEdit_IaRsense"/>
+    </item>
+    <item row="14" column="2">
+     <widget class="QLineEdit" name="lineEdit_IsRsense"/>
+    </item>
+    <item row="15" column="2">
+     <widget class="QLineEdit" name="lineEdit_VgMax"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QPushButton" name="CalResetButton">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>430</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Reset</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="EraseButton">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>430</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Erase</string>
+   </property>
+  </widget>
+ </widget>
+ <tabstops>
+  <tabstop>SaveButton</tabstop>
+  <tabstop>CancelButton</tabstop>
+  <tabstop>CalResetButton</tabstop>
+  <tabstop>VaSli</tabstop>
+  <tabstop>VsSli</tabstop>
+  <tabstop>IaSli</tabstop>
+  <tabstop>IsSli</tabstop>
+  <tabstop>VsuSli</tabstop>
+  <tabstop>Vg05Sli</tabstop>
+  <tabstop>Vg1Sli</tabstop>
+  <tabstop>Vg4Sli</tabstop>
+  <tabstop>Vg40Sli</tabstop>
+  <tabstop>VnSli</tabstop>
+  <tabstop>lineEdit_RaVal</tabstop>
+  <tabstop>lineEdit_VaMax</tabstop>
+  <tabstop>lineEdit_IaRsense</tabstop>
+  <tabstop>lineEdit_IsRsense</tabstop>
+  <tabstop>lineEdit_VgMax</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

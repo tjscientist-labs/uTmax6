@@ -1,0 +1,838 @@
+QMainWindow {background-color:#777;min-height:750px;min-width:700px}
+
+#options_dialog QMessageBox {border:3px solid #f00}
+#groupBox_OD QPushButton {min-width:100px;padding:8px 0}
+#groupBox_OD QLineEdit {color:#fff}
+
+QLabel#Logo {
+	background-image:url(./Themes/img/uTracer.jpg);
+	background-position:center center;
+	background-repeat:none;
+	border:none
+}
+/* QWidget */
+QWidget {
+	background-color:#3a3a3a;
+	color:#fff;
+	selection-background-color:#2083b7;
+	selection-color:#fff
+}
+/* QLabel */
+QLabel {
+	background-color:transparent;
+	color:#fff
+}
+QLabel#IsLimit {
+	background-color:#111;
+}
+QLabel#FWVer {
+	background-color:#111;
+	padding: 3px 0 0 0;
+}
+/* QMenuBar */
+QMenuBar {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(57, 57, 57, 255),stop:1 rgba(50, 50, 50, 255));
+	border:1px solid #000;
+	color:#fff
+}
+QMenuBar::item {
+	background-color:transparent
+}
+QMenuBar::item:selected {
+	background-color:rgba(32,131,183, 20%);
+	border:1px solid #2083b7;
+	color:#fff
+}
+QMenuBar::item:pressed {
+	background-color:rgb(32,131,183);
+	border:1px solid #2083b7;
+	color:#fff
+}
+/* QMenu */
+QMenu {
+    background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(57, 57, 57, 255),stop:1 rgba(50, 50, 50, 255));
+    border:1px solid #222;
+    padding:4px;
+	color:#fff
+}
+QMenu::item {
+    background-color:transparent;
+    padding:2px 20px 2px 20px
+}
+QMenu::separator {
+   	background-color:rgb(32,131,183);
+	height:1px
+}
+QMenu::item:disabled {
+    color:#555;
+    background-color:transparent;
+    padding:2px 20px 2px 20px
+}
+QMenu::item:selected {
+	background-color:rgba(32,131,183, 20%);
+	border:1px solid #2083b7;
+	color:#fff
+}
+/* QToolBar */
+QToolBar {
+	background-color:#3d3d3d;
+	border:none
+}
+QToolBar::separator {
+	background-color:#2e2e2e;
+	width:1px
+}
+/* QToolButton */
+QToolButton {
+	background-color:transparent;
+	color:#fff;
+	padding:5px;
+	padding-left:8px;
+	padding-right:8px;
+	margin-left:1px
+}
+QToolButton:hover {
+	background-color:rgba(32,131,183, 20%);
+	border:1px solid #2083b7;
+	color:#fff
+}
+QToolButton:pressed {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(57, 57, 57, 255),stop:1 rgba(50, 50, 50, 255));
+	border:1px solid #2083b7
+}
+QToolButton:checked {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(57, 57, 57, 255),stop:1 rgba(50, 50, 50, 255));
+	border:1px solid #222
+}
+/* QPushButton */
+QPushButton {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(84, 84, 84, 255),stop:1 rgba(59, 59, 59, 255));
+	color:#fff;
+	border-style:solid;
+	border-width:1px;
+	border-radius:3px;
+	border-color:#051a39;
+	padding:5px
+}
+QPushButton::flat {
+	background-color:transparent;
+	border:none;
+	color:#fff
+}
+QPushButton::disabled {
+	background-color:#404040;
+	color:#656565;
+	border-color:#051a39
+}
+QPushButton::hover {
+	background-color:rgba(32,131,183, 20%);
+	border:1px solid #2083b7
+}
+QPushButton::pressed {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(74, 74, 74, 255),stop:1 rgba(49, 49, 49, 255));
+	border:1px solid #2083b7
+}
+QPushButton::checked {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(74, 74, 74, 255),stop:1 rgba(49, 49, 49, 255));
+	border:1px solid #222
+}
+/* QLineEdit */
+QLineEdit {
+	background-color:#131313;
+	border:1px solid #343434;
+	border-radius:2px;
+	padding:3px;
+	padding-left:5px;
+	border-radius:3px
+}
+QLineEdit::disabled {color:rgba(255,255,255,.2)}
+
+/* QPlainTExtEdit */
+QPlainTextEdit {
+	background-color:#131313;
+	color :#eee;
+	border:1px solid #343434;
+	border-radius:3px;
+	padding:3px;
+	padding-left:5px
+}
+/* QTabBar */
+QTabBar::tab {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(84, 84, 84, 255),stop:1 rgba(59, 59, 59, 255));
+	color:#f7f7f7;
+	border-style:solid;
+	border-width:1px;
+	border-top-width:2px;
+	border-color:#555;
+	border-top-color:#333;
+	border-bottom:none;
+	padding:5px;
+	padding-left:10px;
+	padding-right:10px;
+	height:10px
+
+}
+QTabBar::tab:last {
+	margin-right:0
+}
+QTabBar::tab:first:!selected {
+	background-color:#0c0c0d;
+	margin-left:0px
+}
+QTabBar::tab:!selected {
+	color:#b1b1b1;
+	border-bottom:1px solid #555;
+	background-color:#0c0c0d
+}
+QTabBar::tab:selected {
+	margin-bottom:0px;margin-top:0px;font-weight:bold;font-size:9px
+}
+QTabBar::tab:!selected:hover {
+	border-top-color:#2083b7
+}
+QTabBar::tab:top, QTabBar::tab:bottom {
+    min-width:8ex;
+    margin-right:-1px;
+    padding:5px 10px 5px 10px
+}
+QTabBar::tab:top:!selected {
+    margin-top:5px;padding-bottom:10px
+}
+QTabBar::tab:bottom:!selected {
+    margin-bottom:0px
+}
+QTabBar::close-button {
+	margin:3px 0 0;image:url(./Themes/img/dark/close-button.png)
+}
+QTabBar::close-button:hover {
+	image:url(./Themes/img/dark/close-button-hover.png)
+}
+QTabBar::close-button:pressed {
+	image:url(./Themes/img/dark/close-button-pressed.png)
+}
+QTabWidget::pane {
+	background-color:none;
+	border:1px solid #666;
+	border-top:1px solid #666;
+	top:-2px
+}
+/* QComboBox */
+QComboBox {
+    background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(84, 84, 84, 255),stop:1 rgba(59, 59, 59, 255));
+    border:1px solid #000;
+    padding-left:6px;
+    color:#fff;
+    height:20px
+}
+QComboBox::disabled {
+	background-color:#111;
+	color:#656565;
+	border-color:#051a39
+}
+QComboBox:on {
+    background-color:#2083b7;
+	color:#000
+}
+QComboBox QAbstractItemView {
+    background-color:#383838;
+    color:#fff;
+    border:1px solid black;
+    selection-background-color:#2083b7;
+    outline:0
+}
+QComboBox::drop-down {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(57, 57, 57, 255),stop:1 rgba(50, 50, 50, 255));
+    subcontrol-origin:padding;
+    subcontrol-position:top right;
+    width:15px;
+    border-left-width:1px;
+    border-left-color:black;
+    border-left-style:solid; 
+
+}
+QComboBox::down-arrow {
+    image:url(./Themes/img/dark/arrow-down.png);
+    width:8px;
+    height:8px
+}
+/* QSpinBox & QDateTimeEdit */
+QSpinBox,
+QDateTimeEdit {
+    background-color:#131313;
+	color :#eee;
+	border:1px solid #343434;
+	padding:3px;
+	padding-left:5px;
+    border-radius :2px
+}
+QSpinBox::up-button, 
+QDateTimeEdit::up-button {
+	border-top-right-radius:2px;
+	background-color:#777;
+    width:16px; 
+    border-width:1px
+}
+QSpinBox::up-button:hover, 
+QDateTimeEdit::up-button:hover {
+	background-color:#585858
+}
+QSpinBox::up-button:pressed, 
+QDateTimeEdit::up-button:pressed {
+	background-color:#252525;
+    width:16px; 
+    border-width:1px
+}
+QSpinBox::up-arrow,
+QDateTimeEdit::up-arrow {
+    image:url(./Themes/img/dark/arrow-up.png);
+    width:7px;
+    height:7px
+}
+QSpinBox::down-button, 
+QDateTimeEdit::down-button {
+	border-bottom-right-radius:2px;
+	background-color:#777;
+    width:16px; 
+    border-width:1px
+}
+QSpinBox::down-button:hover, 
+QDateTimeEdit::down-button:hover {
+	background-color:#585858
+}
+QSpinBox::down-button:pressed, 
+QDateTimeEdit::down-button:pressed {
+	background-color:#252525;
+    width:16px; 
+    border-width:1px
+}
+QSpinBox::down-arrow,
+QDateTimeEdit::down-arrow {
+    image:url(./Themes/img/dark/arrow-down.png);
+    width:7px;
+    height:7px
+}
+/* QGroupBox */
+QGroupBox {
+    border:1px solid;
+    border-color:#666666;
+	border-radius:5px;
+    margin-top:20px
+}
+QGroupBox::title {
+    background-color:transparent;
+    color:#eee;
+    subcontrol-origin:margin;
+    padding:5px;
+	border-top-left-radius:3px;
+	border-top-right-radius:3px
+}
+/* QHeaderView */
+QHeaderView::section {
+    background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(60, 60, 60, 255),stop:1 rgba(50, 50, 50, 255));
+	border:1px solid #000;
+    color:#fff;
+    text-align:left;
+	padding:4px
+}
+QHeaderView::section:disabled {
+    background-color:#525251;
+    color:#656565
+}
+QHeaderView::section:checked {
+    background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(60, 60, 60, 255),stop:1 rgba(50, 50, 50, 255));
+    color:#fff
+}
+QHeaderView::section::vertical::first,
+QHeaderView::section::vertical::only-one {
+    border-top:1px solid #353635
+}
+QHeaderView::section::vertical {
+    border-top:1px solid #353635
+}
+QHeaderView::section::horizontal::first,
+QHeaderView::section::horizontal::only-one {
+    border-left:1px solid #353635
+}
+QHeaderView::section::horizontal {
+    border-left:1px solid #353635
+}
+QTableCornerButton::section {
+    background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(60, 60, 60, 255),stop:1 rgba(50, 50, 50, 255));
+	border:1px solid #000;
+    color:#fff
+}
+/* QTreeWidget */
+QTreeView {
+	show-decoration-selected:1;
+	alternate-background-color:#3a3a3a;
+	selection-color:#fff;
+	background-color:#2d2d2d;
+	border:1px solid gray;
+	padding-top :5px;
+	color:#fff;
+	font:8pt
+}
+QTreeView::item:selected {
+	color:#fff;
+	background-color:#2083b7;
+	border-radius:0px
+}
+QTreeView::item:!selected:hover {
+    background-color:#262626;
+    border:none;
+    color:white
+}
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+	image:url(./Themes/img/dark/tree-closed.png)
+}
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings {
+	image:url(./Themes/img/dark/tree-open.png)
+}
+/* QListView */
+QListView {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(83, 83, 83, 255),stop:0.293269 rgba(81, 81, 81, 255),stop:0.634615 rgba(79, 79, 79, 255),stop:1 rgba(83, 83, 83, 255));
+    border :none;
+    color:white;
+    show-decoration-selected:1; 
+    outline:0;
+	border:1px solid gray
+}
+QListView::disabled {
+	background-color:#656565;
+	color:#1b1b1b;
+    border:1px solid #656565
+}
+QListView::item {
+	background-color:#2d2d2d;
+    padding:1px
+}
+QListView::item:alternate {
+    background-color:#3a3a3a
+}
+QListView::item:selected {
+	background-color:#2083b7;
+	border:1px solid #2083b7;
+	color:#fff
+}
+QListView::item:selected:!active {
+	background-color:#2083b7;
+	border:1px solid #2083b7;
+	color:#fff
+}
+QListView::item:selected:active {
+	background-color:#2083b7;
+	border:1px solid #2083b7;
+	color:#fff
+}
+QListView::item:hover {
+    background-color:#262626;
+    border:none;
+    color:white
+}
+/* QCheckBox */
+QCheckBox {
+	background-color:transparent;
+    color:lightgray;
+	border:none
+}
+QCheckBox::indicator {
+    background-color:#323232;
+    border:1px solid darkgray;
+    width:12px;
+    height:12px
+}
+QCheckBox::indicator:checked {
+    image:url(./Themes/img/dark/check.png);
+	background-color:#2083b7;
+    border:1px solid #3a546e
+}
+QCheckBox::indicator:unchecked:hover {
+	border:1px solid #2083b7; 
+
+}
+QCheckBox::disabled {
+	color:#656565
+}
+QCheckBox::indicator:disabled {
+	background-color:#656565;
+	color:#656565;
+    border:1px solid #656565
+}
+/* QRadioButton */
+QRadioButton {
+	color:lightgray;
+	background-color:transparent
+}
+QRadioButton::indicator::unchecked:hover {
+	background-color:lightgray;
+	border:2px solid #2083b7;
+	border-radius:6px
+}
+QRadioButton::indicator::checked {
+	border:2px solid #2083b7;
+	border-radius:6px;
+	background-color:rgba(183,134,32,20%);  
+	width:9px; 
+	height:9px; 
+
+}
+/* QSlider */
+QSlider::groove:horizontal {
+	background-color:transparent;
+	height:3px
+}
+QSlider::sub-page:horizontal {
+	background-color:#2083b7
+}
+QSlider::add-page:horizontal {
+	background-color:#131313
+}
+QSlider::handle:horizontal {
+	background-color:#2083b7;
+	width:14px;
+	margin-top:-6px;
+	margin-bottom:-6px;
+	border-radius:6px
+}
+QSlider::handle:horizontal:hover {
+	background-color:#d89e25;
+	border-radius:6px
+}
+QSlider::sub-page:horizontal:disabled {
+	background-color:#bbb;
+	border-color:#999
+}
+QSlider::add-page:horizontal:disabled {
+	background-color:#eee;
+	border-color:#999
+}
+QSlider::handle:horizontal:disabled {
+	background-color:#eee;
+	border:1px solid #aaa;
+	border-radius:3px
+}
+/* QScrollBar */
+QScrollBar:horizontal {
+    border:1px solid #222222;
+    background-color:#3d3d3d;
+    height:15px;
+    margin:0px 16px 0 16px
+}
+QScrollBar::handle:horizontal {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(97, 97, 97, 255),stop:1 rgba(90, 90, 90, 255));
+	border:1px solid #2d2d2d;
+    min-height:20px
+}
+QScrollBar::add-line:horizontal {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(97, 97, 97, 255),stop:1 rgba(90, 90, 90, 255));
+	border:1px solid #2d2d2d;
+    width:15px;
+    subcontrol-position:right;
+    subcontrol-origin:margin
+}
+QScrollBar::sub-line:horizontal {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(97, 97, 97, 255),stop:1 rgba(90, 90, 90, 255));
+	border:1px solid #2d2d2d;
+    width:15px;
+    subcontrol-position:left;
+    subcontrol-origin:margin
+}
+QScrollBar::right-arrow:horizontal {
+    image:url(./Themes/img/dark/arrow-right.png);
+    width:6px;
+    height:6px
+}
+QScrollBar::left-arrow:horizontal {
+    image:url(./Themes/img/dark/arrow-left.png);
+    width:6px;
+    height:6px
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background:none
+}
+QScrollBar:vertical {
+    background-color:#3d3d3d;
+    width:16px;
+	border:1px solid #2d2d2d;
+    margin:16px 0px 16px 0px
+}
+QScrollBar::handle:vertical {
+    background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(97, 97, 97, 255),stop:1 rgba(90, 90, 90, 255));
+	border:1px solid #2d2d2d;
+    min-height:20px
+}
+QScrollBar::add-line:vertical {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(97, 97, 97, 255),stop:1 rgba(90, 90, 90, 255));
+	border:1px solid #2d2d2d;
+    height:15px;
+    subcontrol-position:bottom;
+    subcontrol-origin:margin
+}
+QScrollBar::sub-line:vertical {
+	background-color:qlineargradient(spread:repeat, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(97, 97, 97, 255),stop:1 rgba(90, 90, 90, 255));
+	border:1px solid #2d2d2d;
+    height:15px;
+    subcontrol-position:top;
+    subcontrol-origin:margin
+}
+QScrollBar::up-arrow:vertical {
+    image:url(./Themes/img/dark/arrow-up.png);
+    width:6px;
+    height:6px
+}
+QScrollBar::down-arrow:vertical {
+    image:url(./Themes/img/dark/arrow-down.png);
+    width:6px;
+    height:6px
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background:none
+}
+/* QProgressBar */
+QProgressBar {border:1px solid #333;border-radius:3px;max-height:30px}
+QProgressBar::chunk {background-color:333;width:5px;margin:0}
+
+QLabel#label_Center {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+QLabel#label_Percent {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+QLabel#gm_label {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+QLabel#label_Percent_gm {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+QLineEdit#Vca {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+QLineEdit#Vcs {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+
+QLineEdit#Vcg {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+
+QLineEdit#DeltaVa {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+
+QLineEdit#DeltaVs {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+
+QLineEdit#DeltaVg {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+
+QLineEdit#gm1Typ {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+
+QLineEdit#gm2Typ {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+
+QLineEdit#gm1Delta {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+
+QLineEdit#gm2Delta {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));border:1px solid #333
+}
+
+QLabel#label_Bias {
+	background-color:rgba(183, 134, 32, .3);border:1px solid #333
+}
+QLineEdit#EmmVa {
+	background-color:rgba(183, 134, 32, .3);border:1px solid #333
+}
+QLineEdit#EmmVs {
+	background-color:rgba(183, 134, 32, .3);border:1px solid #333
+}
+QLineEdit#EmmVg {
+	background-color:rgba(183, 134, 32, .3);border:1px solid #333
+}
+QGroupBox#Sweep QLabel#label,QGroupBox#Sweep QLabel#label_4,QGroupBox#Sweep QLabel#label_8,QGroupBox#Sweep QLabel#label_9,QGroupBox#Sweep QLabel#label_10   {qproperty-alignment:AlignRight;margin-right:10px;color:#fff}
+QGroupBox#Sweep QLabel#label_3,QGroupBox#Sweep QLabel#label_5,QGroupBox#Sweep QLabel#label_6,QGroupBox#Sweep QLabel#label_7 {color:#fff}
+
+QPushButton#Start {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.3), 
+	stop:1 rgba(150,197,111,.3));
+	border-radius:3px;
+	border:1px solid;
+	border-color:#555;
+	max-width:150px;max-height:40px;margin-top:5px
+}
+QPushButton#Start:hover {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(169,219,128,.6), 
+	stop:1 rgba(150,197,111,.8));
+	border-color:#0cc00c
+}
+
+QPushButton#Start:pressed {border:1px solid;border-color:#333}
+QPushButton#Stop {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(242,130,91,.3), 
+	stop:1 rgba(240,113,70,.3));
+	border-radius:4px;
+	border:1px solid;
+	border-color:#555;
+	max-width:150px;max-height:40px;margin-top:5px
+}
+QPushButton#Stop:hover {
+	background-color:
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(242,130,91,.6), 
+	stop:1 rgba(240,113,70,.6));
+	border-color:#c73232
+}
+QPushButton#Stop:pressed {border:1px solid;border-color:#333}
+
+QGroupBox {padding:10px 5px 5px;margin:0;font-size:12px;font-weight:bold;border-bottom:3px solid #555;text-decoration:underline}
+QGroupBox#AutoFile {padding:20px 10px 10px;margin:0;max-width:900px;max-height:100px}
+QCheckBox#checkAutoNumber {margin:0}
+QLineEdit#AutoPath {margin:0}
+QGroupBox#AutoFile QPushButton#Browse {min-width:20%;width:20%}
+
+QGroupBox::QLabel {font-weight:bold}
+QLabel#label_Bias {max-height:50px}
+
+QGroupBox#TypeSetup {max-width:200px;background-color:#555}
+QGroupBox#TypeSetup QComboBox#TubeSelector {margin:5px 0 0}
+QGroupBox#TypeSetup QComboBox#TubeType {margin:1px 0}
+QGroupBox#TypeSetup QLineEdit {max-height:25px}
+QGroupBox#TypeSetup QLabel {font-weight:bold;margin-right:10px}
+QGroupBox#Readings {padding:0;min-height:100px;height:100px;max-height:100px}
+QGroupBox#Readings:QLabel {font-weight:bold}
+QGroupBox#Sweep {max-width:900px;padding:20px 5px 5px}
+
+QLCDNumber {max-width:60px}
+QGroupBox#GroupBox_ctl {border:none}
+QGroupBox#GroupBox_Actions {max-height:80px;padding:5px}
+QGroupBox#Sweep:title, QGroupBox#AutoFile:title {subcontrol-origin:margin;subcontrol-position:top center}
+QGroupBox#Readings:title, QGroupBox#TypeSetup:title {subcontrol-origin:margin;subcontrol-position:top center}
+
+/* This dialect of qss for the uTracer has the following additional properties which are embedded in comments:
+plotAreaColor
+PlotBAckgroundColor
+PlotAreaColor
+PlotAxisColor
+PlotTextColor
+plotGridLine
+plotLegendColor
+plotLegendTextColor
+plotSHowValColor
+plotLineColor(#)
+plotLineWidth
+Some examples of use are below
+*/
+
+
+/*plotAreaColor=#fff*/
+/*plotBackGroundColor=#fff*/
+/*plotGridColor=#888*/
+/*plotAxisColor=#444*/
+/*plotTextColor=#000*/
+/*plotGridLine=3*/
+/*plotLineWidth=3*/
+/*plotSHowValColor=#111*/
+/*plotLegendColor=#00000000*/
+/*plotLegendTextColor=#444*/
+/* Choices for plotGridLine are integers thus:
+    NoPen 0
+    SolidLine 1 
+    DashLine 2
+    DotLine 3
+    DashDotLine 4
+    DashDotDotLine 5
+*/
+
+QGroupBox#plotCtl {margin:0;border:none;border-radius:0;max-height:65px;background:#444}

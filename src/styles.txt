@@ -1,0 +1,120 @@
+QLabel#Logo {
+background-image: url(uTracer.png); 
+}
+QLabel#label_Center {
+	background-color: rgb(0, 220, 0);
+}
+QLabel#label_Percent {
+	background-color: rgb(0, 220, 0);
+}
+QLabel#gm_label {
+	background-color: rgb(0, 200, 0);
+}
+QLabel#label_Percent_gm {
+	background-color: rgb(0, 200, 0);
+}
+QLabel#label_Bias {
+	background-color: rgb(230, 230, 0);
+}
+
+QLineEdit#Vca {
+	background-color: rgb(0, 255, 0);
+}
+
+
+QLineEdit#Vcs {
+	background-color: rgb(0, 255, 0);
+}
+
+QLineEdit#Vcg {
+	background-color: rgb(0, 255, 0);
+}
+
+QLineEdit#DeltaVa {
+	background-color: rgb(0, 255, 0);
+}
+
+QLineEdit#DeltaVs {
+	background-color: rgb(0, 255, 0);
+}
+
+QLineEdit#DeltaVg {
+	background-color: rgb(0, 255, 0);
+}
+
+QLineEdit#gm1Typ {
+	background-color: rgb(0, 235, 0);
+}
+
+QLineEdit#gm2Typ {
+	background-color: rgb(0, 235, 0);
+}
+
+QLineEdit#gm1Delta {
+	background-color: rgb(0, 235, 0);
+}
+
+QLineEdit#gm2Delta {
+	background-color: rgb(0, 235, 0);
+}
+QLineEdit#EmmVa {
+	background-color: rgb(250, 250, 0);
+}
+QLineEdit#EmmVs {
+	background-color: rgb(250, 250, 0);
+}
+QLineEdit#EmmVg {
+	background-color: rgb(250, 250, 0);
+}
+QPushButton#Start {
+	background-color: 
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(100, 255, 100, 255), 
+	stop:1 rgba(75, 150, 75, 255));
+	border-radius:4px;
+	border: 1px solid;
+	border-color: #000000;
+}
+QPushButton#Start:hover {
+	background-color: 
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(120, 255, 120, 255), 
+	stop:1 rgba(85, 170, 85, 255));
+	border-color: #80f080;
+}
+
+QPushButton#Start:pressed {
+	border: 1px solid;
+	border-color: #008000;
+}
+
+
+QPushButton#Stop {
+	background-color: 
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(250, 50, 50, 255), 
+	stop:1 rgba(230, 40, 40, 255));
+	border-radius:4px;
+	border: 1px solid;
+border-color: #000000;
+}
+QPushButton#Stop:hover {
+	background-color: 
+	qlineargradient(spread:pad, 
+	x1:0, y1:0, 
+	x2:0, y2:1, 
+	stop:0 rgba(255, 70, 70, 255), 
+	stop:1 rgba(240, 50, 50, 255));
+	border-color: #ff8080;
+}
+
+QPushButton#Stop:pressed {
+	border: 1px solid;
+	border-color: #800000;
+}
