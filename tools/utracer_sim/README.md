@@ -73,6 +73,16 @@ The resistor and diode loads match the physical dummy loads used for the first
 hardware checks, so a simulated run and a bench run of the same load can be
 compared directly.
 
+To see the curves a load should give, draw them as an SVG (standard library only):
+
+```
+python3 tools/utracer_sim/plot_curves.py --load triode:12AX7 --out 12ax7.svg
+python3 tools/utracer_sim/plot_curves.py --load r:100k --va-max 300 --grids 0
+```
+
+That picture is what uTmax should draw when it sweeps the simulator with the same
+load, so it is the reference to compare a run against.
+
 ## How it works
 
 The uTracer protocol is simple (Dekker, dos4ever.com, uTracer3 log §15):
