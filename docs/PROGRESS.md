@@ -57,6 +57,7 @@ described in [`CHANGES.md`](../CHANGES.md).
 - [ ] Tests that record 3.01's present behaviour
 - [x] **Fix the positive-grid command on the uTracer6**
 - [ ] Handle the positive-grid board's 42-character replies
+- [ ] Allow a positive grid only when the extension board is fitted
 - [ ] Check every command before sending, treat a bad echo as an error, check replies
 - [ ] Fix the 425 V limit on delayed sweeps
 - [ ] Send End Measurement (discharge) on Stop and at the end of each sweep

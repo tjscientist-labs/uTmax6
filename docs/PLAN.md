@@ -58,6 +58,10 @@ Each with its own test. The list so far, most serious first:
   protocol out of step. Reproduced in `tests/repro/positive_grid_word.cpp`;
   recorded in `tests/test_known_bugs.py`. Dekker's encoding is magnitude in
   bits 0-14 and bit 15 set for a positive grid.
+- **Positive grid allowed without the extension board.** In uTracer6 mode uTmax
+  accepts grid voltages up to +VgMax whether or not Dekker's positive-grid board
+  is fitted. Add an option for the board (the uTracer6 also reports it: status
+  bit 7) and refuse positive grid voltages without it.
 - **Positive-grid extension board: replies are 42 characters** (status bit 7
   set, plus a grid-current word), but uTmax 3.01 waits for exactly 38, so it
   probably cannot complete a measurement with the board fitted. To be confirmed
