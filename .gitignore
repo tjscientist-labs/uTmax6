@@ -1,0 +1,17 @@
+# Build output (build out of tree: see BUILDING.md)
+build/
+release/
+debug/
+release_obj/
+debug_obj/
+Makefile*
+*.o
+moc_*
+ui_*.h
+qrc_*.cpp
+.qmake.stash
+*.pro.user*
+# Python
+__pycache__/
+*.pyc
+.venv/

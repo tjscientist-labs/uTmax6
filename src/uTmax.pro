@@ -25,17 +25,12 @@ CONFIG(release, debug|release) {
 
 }
 
-# macx unix win32
-win32:INCLUDEPATH += "C:/Users/nick/Downloads/mingw-w64-x86_64-gsl-2.7.1-1-any.pkg/mingw64/include"
-
-#LIBS+="C:/Users/nick/Downloads/mingw-w64-x86_64-gsl-2.7.1-1-any.pkg/mingw64/lib/libgsl.dll.a"
-#LIBS+="C:/Users/nick/Downloads/mingw-w64-x86_64-gsl-2.7.1-1-any.pkg/mingw64/lib/libgslcblas.dll.a"
-
-win32:LIBS+= release/libgsl-27.dll
-win32:LIBS+= release/libgslcblas-0.dll
-
-#win32:LIBS+= -Lrelease -llibgsl-27.dll
-#win32:LIBS+= -Lrelease -llibgslcblas-0.dll
+# uTmax6: GSL is linked from the system on every platform.
+#   Linux / Raspberry Pi OS:  sudo apt install libgsl-dev
+#   Windows (MSYS2 UCRT64):   pacman -S mingw-w64-ucrt-x86_64-gsl
+# Nick Barton's original lines pointed at copies of GSL on his own PC;
+# they are kept in git history (first commit).
+LIBS += -lgsl -lgslcblas
 
 RESOURCES +=
 
