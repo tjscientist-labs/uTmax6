@@ -8,6 +8,11 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ## Done
 
+- **2026-11-18** — **Fixed: delayed sweeps stopped at 425 V on a uTracer6.**
+  Sweeps with a delay refused anything above 425 V, the uTracer3's ceiling. Every
+  measurement is now checked against the maximum set in the calibration, capped
+  at 425 V on a uTracer3 (as before) and 1000 V on a uTracer6. Sweeps without a
+  delay, which had no such check, now have the same one.
 - **2026-11-18** — **Fixed: uTmax works with the positive-grid extension board.**
   With Dekker's board fitted, the uTracer6 answers with 42 characters instead of
   38. uTmax 3.01 waited for 38, so it never accepted an answer and kept
@@ -67,7 +72,7 @@ described in [`CHANGES.md`](../CHANGES.md).
 - [ ] Show the grid current from the extension board
 - [ ] Allow a positive grid only when the extension board is fitted
 - [ ] Check every command before sending, treat a bad echo as an error, check replies
-- [ ] Fix the 425 V limit on delayed sweeps
+- [x] **Fix the 425 V limit on delayed sweeps**
 - [ ] Send End Measurement (discharge) on Stop and at the end of each sweep
 - [ ] Stop rewriting `cal.txt` at every start
 - [ ] Create `~/uTmax_files` if missing; load styles and write logs there

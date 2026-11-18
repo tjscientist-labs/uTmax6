@@ -8,6 +8,18 @@ where the fix comes from his fork.
 
 ## 2026-11-18
 
+- **Fixed: delayed sweeps stopped above 425 V on a uTracer6.** In 3.01 the
+  hold path (sweeps with a Delay set) refused any anode or screen voltage above
+  a fixed 425 V, the uTracer3's ceiling, and stopped the sweep with "Internal
+  Error: Va or Vs excessive". Sweeps without a delay had no such backstop at
+  all. Every measurement (both paths, three places in `src/mainwindow.cpp`:
+  `Sweep_Set()` twice and `Hold()`) now goes through `hvWithinLimit()` in the
+  new `src/voltage_limit.h`: the user's `VaMax`, capped at 425 V on a uTracer3
+  (3.01's figure, so the uTracer3 behaves as before) and 1000 V on a uTracer6
+  (Dekker's rating), with 1 V of slack for rounding in the sweep steps. A NaN
+  voltage is refused (3.01 let it through). The sweep set-up still checks and
+  clamps against `VaMax` as before; this is the backstop behind it. Tests:
+  `tests/test_voltage_limit.py`. A full sweep is not yet driven end to end.
 - **Fixed: 42-character replies from the positive-grid extension board.** With
   Dekker's extension board fitted, a uTracer6 sets bit 7 of the status byte and
   appends a four-character grid-current word, so its replies are 42 characters

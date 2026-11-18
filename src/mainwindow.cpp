@@ -28,6 +28,7 @@
 #include "datasavedialog.h"
 #include "grid_word.h"
 #include "reply_format.h"
+#include "voltage_limit.h"
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -1416,6 +1417,13 @@ void MainWindow::Sweep_Set() {
         VaNow = sweepList->at(curve).Va;
         VsNow = sweepList->at(curve).Vs;
         VgNow = sweepList->at(curve).Vg;
+        // uTmax6: the same backstop as the hold path (3.01 had none here). voltage_limit.h
+        if (!hvWithinLimit(VaNow, VsNow, options.uTracer6, calData.VaMax)) {
+            ui->statusBar->showMessage(tr("Internal Error: Va or Vs excessive"));
+            stop = false;
+            End(1);
+            return;
+        }
         //qDebug() << "a=" << VaNow << "s=" << VsNow << "g=" << VgNow;
         //qDebug() << "VaStep=" << VaStep << "VsStep=" << VsStep << "VgStep=" << VgStep;
         VaADC = GetVa( VaNow );
@@ -1435,7 +1443,9 @@ void MainWindow::Sweep_Set() {
         VaNow = sweepList->at(curve).Va;
         VsNow = sweepList->at(curve).Vs;
         VgNow = sweepList->at(curve).Vg;
-        if (VaNow>425 || VsNow>425) {
+        // uTmax6: was a fixed 425 V (the uTracer3's ceiling), which stopped every
+        // delayed sweep above 425 V on a uTracer6. Now VaMax, capped per model. voltage_limit.h
+        if (!hvWithinLimit(VaNow, VsNow, options.uTracer6, calData.VaMax)) {
             ui->statusBar->showMessage(tr("Internal Error: Va or Vs excessive"));
             stop = false;
             End(1);
@@ -1472,7 +1482,9 @@ void MainWindow::Hold() {
         VaNow = sweepList->at(curve).Va;
         VsNow = sweepList->at(curve).Vs;
         VgNow = sweepList->at(curve).Vg;
-        if (VaNow>425 || VsNow>425) {
+        // uTmax6: was a fixed 425 V (the uTracer3's ceiling), which stopped every
+        // delayed sweep above 425 V on a uTracer6. Now VaMax, capped per model. voltage_limit.h
+        if (!hvWithinLimit(VaNow, VsNow, options.uTracer6, calData.VaMax)) {
             ui->statusBar->showMessage(tr("Internal Error: Va or Vs excessive"));
             stop = false;
             //float v = VaNow > VsNow ? VaNow : VsNow;

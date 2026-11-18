@@ -107,9 +107,12 @@ within 250 ms.
    settings command `00`: current limit, averaging, screen gain, anode gain.
 3. If the heater isn't hot: `50` (read the supply), then `40` (heater on), then a
    countdown (`Heating_f()`).
-4. For each point: `Sweep_Set()` converts the point's volts to codes (`GetVa()`,
-   `GetVs()`, `GetVg()`, `GetVf()`) and sends `10`. With a delay set, it sends
-   `20` (apply and hold) first.
+4. For each point: `Sweep_Set()` checks the anode and screen volts against the
+   backstop (`hvWithinLimit()`, `src/voltage_limit.h`: `VaMax`, capped at 425 V
+   on a uTracer3 and 1000 V on a uTracer6; a trip stops the sweep with "Internal
+   Error: Va or Vs excessive"), converts the volts to codes (`GetVa()`, `GetVs()`,
+   `GetVg()`, `GetVf()`) and sends `10`. With a delay set, it sends `20` (apply
+   and hold) first, and `Hold()` makes the same check before the `10`.
 5. `Sweep_ADC()` reads the reply (`saveADCInfo()`, line 2195, then `GetReal()`,
    line 2217), checks for a current-limit trip (status `11`), and stores the point
    (`StoreData()`, line 1805).
@@ -237,6 +240,7 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_known_bugs.py` | Known bugs, recorded as they are; a fixed bug's test moves to a test of the correct behaviour. |
 | `tests/test_grid_word.py` + `tests/cpp/test_grid_word.cpp` | The uTracer6 grid word: C++ checks of `src/grid_word.h` against Dekker's formula, then its commands decoded by the simulator. Needs g++. |
 | `tests/test_reply_format.py` + `tests/cpp/test_reply_format.cpp` | Result-string length and status byte: C++ checks of `src/reply_format.h` (38 or 42 characters; current limit `11` or `91`), and that the simulator's replies agree. |
+| `tests/test_voltage_limit.py` + `tests/cpp/test_voltage_limit.cpp` | The anode/screen backstop: C++ checks of `src/voltage_limit.h` for both models, the user's maximum, the 1 V slack and NaN; and that no fixed 425 V is left in `mainwindow.cpp`. |
 | `tests/test_utmax_smoke.py` | Runs the built program with no window against the simulator and checks what it sends, on a uTracer6 with and without the positive-grid board. |
 
 The GitHub workflow runs all of them on Linux x64 and arm64 after building.
@@ -279,8 +283,8 @@ where they exist. The most serious:
 - ~~**42-character replies** with the positive-grid board~~ **fixed 2026-11-18**:
   `RxPkt()` reads the status byte first (`src/reply_format.h`). The grid-current
   word is received but not yet shown.
-- **425 V cap on delayed sweeps** (`Sweep_Set()` and `Hold()`, around lines 1425
-  and 1462).
+- ~~**425 V cap on delayed sweeps**~~ **fixed 2026-11-18**: one backstop for every
+  measurement, `hvWithinLimit()` in `src/voltage_limit.h`.
 - **Discharge waits up to 20 s** after a sweep (section 3.3).
 - `cal.txt` rewritten on every start; `~/uTmax_files` not created; `Style.qss` and
   the log read and written in the current folder.

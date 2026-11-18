@@ -7,6 +7,8 @@ Open: none recorded as a test yet. The list of known problems is in
 docs/PLAN.md (stage 4) and docs/DEVELOPER.md (section 11).
 
 Fixed:
+- 2026-11-18  Delayed sweeps stopped above 425 V on a uTracer6; no backstop on
+              sweeps without a delay. Now tests/test_voltage_limit.py.
 - 2026-11-18  Positive-grid board's 42-character replies never accepted (uTmax
               timed out and reconnected); status 91 not seen as a current limit.
               Now tests/test_reply_format.py and UTmaxWithPositiveGridBoard in
