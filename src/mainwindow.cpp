@@ -26,6 +26,7 @@
 #include "options_dialog.h"
 #include "debug_dialog.h"
 #include "datasavedialog.h"
+#include "grid_word.h"
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -2291,10 +2292,10 @@ uint MainWindow::GetVg(float v) {
     } */
     //qDebug() << "Grid Vgm=" << calData.Vgm << "Grid Vg0=" << calData.Vg0;
     if (options.uTracer6) {
-        Vg=(-32767) / float(calData.VgMax) *V0;
-        g =int(round(Vg));
-        if( g > 32767) g = 32767;
-        if( g < -32768) g = -32768;
+        // uTmax6: Dekker's sign-and-magnitude word (see grid_word.h). uTmax 3.01
+        // returned a negative int here for a positive grid, which went out as
+        // FFFF (+100 V) with the heater word lost.
+        return utracer6GridWord(V0, float(calData.VgMax));
     } else {
         if (Vg<0) Vg=0;
         Vg=(-4096) / float(calData.VgMax) *V0;

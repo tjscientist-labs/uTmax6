@@ -46,6 +46,7 @@ SOURCES += main.cpp\
     plotTabWidget.cpp
 
 HEADERS  += mainwindow.h \
+    grid_word.h \
     cal_dialog.h \
     cal_wizard.h \
     debug_dialog.h \

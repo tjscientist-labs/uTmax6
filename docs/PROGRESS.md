@@ -8,6 +8,10 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ## Done
 
+- **2026-11-18** — **Fixed: positive grid on a uTracer6.** A positive grid
+  voltage now goes out as Dekker specifies (+1 V is `8148`, not `FFFF` = +100 V),
+  and the heater setting is no longer lost. Tested against the simulator's
+  uTracer6 model from −150 V to +150 V.
 - **2026-11-18** — Decided: a plain, easy-to-build case alongside the steampunk trunk, with room for an optional Raspberry Pi and display.
 - **2026-11-18** — **Developer manual** (`docs/DEVELOPER.md`): structure, state machine, a sweep step by step, protocol, conversions, files, simulator, tests, how to make a change.
 - **2026-11-18** — **Found: a positive grid on a uTracer6 sends +100 V.** uTmax
@@ -51,7 +55,7 @@ described in [`CHANGES.md`](../CHANGES.md).
 - [ ] Simulator: Windows support; reservoir droop
 - [ ] Tests that drive a full sweep (needs a test hook in uTmax)
 - [ ] Tests that record 3.01's present behaviour
-- [ ] **Fix the positive-grid command on the uTracer6** (most urgent)
+- [x] **Fix the positive-grid command on the uTracer6**
 - [ ] Handle the positive-grid board's 42-character replies
 - [ ] Check every command before sending, treat a bad echo as an error, check replies
 - [ ] Fix the 425 V limit on delayed sweeps

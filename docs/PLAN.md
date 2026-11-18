@@ -49,7 +49,8 @@ it is, so that later changes cannot alter behaviour without a test failing.
 ### 4. Bug fixes, one per commit
 Each with its own test. The list so far, most serious first:
 
-- **Positive grid on a uTracer6 sends the wrong command.** `GetVg()` returns a
+- ~~**Positive grid on a uTracer6 sends the wrong command.**~~ **Fixed 2026-11-18**
+  (`src/grid_word.h`, `tests/test_grid_word.py`). `GetVg()` returns a
   negative number as unsigned; `%04X` prints 8 digits and `snprintf` cuts the
   command at 18 characters. For +1 V the uTracer6 receives grid `FFFF`, which
   Dekker's firmware reads as **+100 V**, and the heater word is lost. The hold

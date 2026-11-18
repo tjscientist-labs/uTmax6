@@ -1,7 +1,8 @@
-// Reproduces uTmax 3.01 GetVg() (uTracer6 branch) and the sweep command snprintf,
-// to show what is sent for a positive grid voltage. Build and run:
+// HISTORY: reproduces uTmax 3.01's GetVg() (uTracer6 branch) and the sweep command
+// snprintf, to show what 3.01 sent for a positive grid voltage. Fixed in uTmax6 on
+// 2026-11-18 (src/grid_word.h); kept as the record of the bug. Build and run:
 //   g++ -o /tmp/pgw tests/repro/positive_grid_word.cpp && /tmp/pgw
-// See tests/test_known_bugs.py.
+// See tests/test_grid_word.py.
 #include <cstdio>
 #include <cmath>
 typedef unsigned int uint;

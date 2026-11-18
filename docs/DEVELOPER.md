@@ -65,6 +65,7 @@ end-to-end test runs it.
 | `options_dialog.cpp` | `options_dialog` | Options: uTracer6 mode, averaging, current limit, heater, style. |
 | `debug_dialog.cpp` | `debug_dialog` | Serial-port choice, ping, read ADC, firmware log. |
 | `datasavedialog.cpp` | `DataSaveDialog` | Save-data options. |
+| `grid_word.h` | — | `utracer6GridWord()`: the uTracer6 grid word, sign and magnitude (uTmax6). |
 | `qcustomplot.*` | — | QCustomPlot 2.1.0 (third-party plotting library). `qcustomplot_131.*` is an older copy, not compiled. |
 
 ### 3.2 The timer and the state machine
@@ -228,7 +229,8 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | File | What it checks |
 |---|---|
 | `tests/test_simulator.py` | Conversions against Dekker's formulas; loads; the protocol over a real pseudo-terminal; the positive-grid board; fault injection. |
-| `tests/test_known_bugs.py` | Known bugs, recorded as they are. When a bug is fixed, its test is changed in the same commit. |
+| `tests/test_known_bugs.py` | Known bugs, recorded as they are; a fixed bug's test moves to a test of the correct behaviour. |
+| `tests/test_grid_word.py` + `tests/cpp/test_grid_word.cpp` | The uTracer6 grid word: C++ checks of `src/grid_word.h` against Dekker's formula, then its commands decoded by the simulator. Needs g++. |
 | `tests/test_utmax_smoke.py` | Runs the built program with no window against the simulator and checks what it sends. |
 
 The GitHub workflow runs all of them on Linux x64 and arm64 after building.
@@ -265,9 +267,9 @@ Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first. The short version:
 Recorded in `docs/PLAN.md` (stage 4), with tests in `tests/test_known_bugs.py`
 where they exist. The most serious:
 
-- **Positive grid on a uTracer6** (`GetVg()`, around line 2293): a positive grid
-  gives a negative number, `%04X` prints 8 digits and the command is cut off; the
-  uTracer6 would get +100 V on the grid. `tests/repro/positive_grid_word.cpp`.
+- ~~**Positive grid on a uTracer6**~~ **fixed 2026-11-18**: `GetVg()` now calls
+  `utracer6GridWord()` (`src/grid_word.h`). 3.01's behaviour is kept in
+  `tests/repro/positive_grid_word.cpp`.
 - **42-character replies** with the positive-grid board: `RxPkt()` waits for 38.
 - **425 V cap on delayed sweeps** (`Sweep_Set()` and `Hold()`, around lines 1425
   and 1462).
