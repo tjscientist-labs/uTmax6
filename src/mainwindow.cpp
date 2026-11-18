@@ -2367,11 +2367,10 @@ void MainWindow::ReadCalibration()
         calFile << "Ia=1.0\n";
         calFile << "Is=1.0\n";
         calFile << "Vsu=1.0\n";
-        calFile << "Vg05=1.0\n";
-        calFile << "Vg1=1.0\n";
-        calFile << "Vg4=1.0\n";
-        calFile << "Vg40=1.0\n";
-        calFile << "Vg40=1.0\n";
+        // uTmax6: the grid calibration uTmax reads is Vg0 and Vgm; 3.01 wrote the
+        // obsolete Vg05/Vg1/Vg4/Vg40 here, so a new install had no grid calibration.
+        calFile << "Vg0=0\n";
+        calFile << "Vgm=1.0\n";
         calFile << "Vn=1.0\n";
         calFile << "RaVal=6800\n";
         calFile << "VaMax=300\n";
@@ -2395,30 +2394,39 @@ void MainWindow::ReadCalibration()
     datafile.open(QIODevice::ReadOnly | QIODevice::Text);
     QTextStream in(&datafile);
     calData.SavePath = QDir::homePath();
+    // uTmax6: a value that can't be read keeps its default (3.01 turned it into 0).
+    auto num = [](const QString &key, const QString &text, float current) {
+        bool ok = false;
+        float v = text.trimmed().toFloat(&ok);
+        if (ok && std::isfinite(v)) return v;
+        qWarning() << "cal.txt:" << key << "=" << text << "is not a number; keeping" << current;
+        return current;
+    };
     while ( !in.atEnd() )
     {
         QString line = in.readLine();
         QStringList list = line.split("=");
+        if (list.size() < 2) continue;      // uTmax6: a line without '=' (3.01 read past the end)
         //qDebug() << "ReadCalibration:" << list;
         //Get Cal data and set sliders
         if (list.first()=="COM") comport=list.at(1);
-        else if (list.first()=="Va") calData.VaVal = (list.at(1).toFloat());
-        else if (list.first()=="Vs") calData.VsVal = (list.at(1).toFloat());
-        else if (list.first()=="Ia") calData.IaVal = (list.at(1).toFloat());
-        else if (list.first()=="Is") calData.IsVal = (list.at(1).toFloat());
-        else if (list.first()=="Vsu") calData.VsuVal = (list.at(1).toFloat());
-        else if (list.first()=="Vg0") calData.Vg0 = list.at(1).toFloat();
-        else if (list.first()=="Vgm") calData.Vgm = (list.at(1).toFloat());
+        else if (list.first()=="Va") calData.VaVal = num("Va", list.at(1), calData.VaVal);
+        else if (list.first()=="Vs") calData.VsVal = num("Vs", list.at(1), calData.VsVal);
+        else if (list.first()=="Ia") calData.IaVal = num("Ia", list.at(1), calData.IaVal);
+        else if (list.first()=="Is") calData.IsVal = num("Is", list.at(1), calData.IsVal);
+        else if (list.first()=="Vsu") calData.VsuVal = num("Vsu", list.at(1), calData.VsuVal);
+        else if (list.first()=="Vg0") calData.Vg0 = num("Vg0", list.at(1), calData.Vg0);
+        else if (list.first()=="Vgm") calData.Vgm = num("Vgm", list.at(1), calData.Vgm);
         //else if (list.first()=="Vg05") calData.Vg05Val = FromRealVal(list.at(1).toFloat());
         //else if (list.first()=="Vg1") calData.Vg1Val = FromRealVal(list.at(1).toFloat());
         //else if (list.first()=="Vg4") calData.Vg4Val = FromRealVal(list.at(1).toFloat());
         //else if (list.first()=="Vg40") calData.Vg40Val = FromRealVal(list.at(1).toFloat());
-        else if (list.first()=="Vn") calData.VnVal = (list.at(1).toFloat());
-        else if (list.first()=="RaVal") calData.RaVal = list.at(1).toFloat();
-        else if (list.first()=="VaMax") calData.VaMax = list.at(1).toFloat();
-        else if (list.first()=="IaRsense") calData.IaRsense = list.at(1).toFloat();
-        else if (list.first()=="IsRsense") calData.IsRsense = list.at(1).toFloat();
-        else if (list.first()=="VgMax") calData.VgMax = list.at(1).toFloat();
+        else if (list.first()=="Vn") calData.VnVal = num("Vn", list.at(1), calData.VnVal);
+        else if (list.first()=="RaVal") calData.RaVal = num("RaVal", list.at(1), calData.RaVal);
+        else if (list.first()=="VaMax") calData.VaMax = num("VaMax", list.at(1), calData.VaMax);
+        else if (list.first()=="IaRsense") calData.IaRsense = num("IaRsense", list.at(1), calData.IaRsense);
+        else if (list.first()=="IsRsense") calData.IsRsense = num("IsRsense", list.at(1), calData.IsRsense);
+        else if (list.first()=="VgMax") calData.VgMax = num("VgMax", list.at(1), calData.VgMax);
         else if (list.first()=="Firmware") calData.Firmware = list.at(1).toShort();
         else if (list.first()=="SavePath") calData.SavePath = list.at(1);
         else if (list.first()=="Style") calData.Style = list.at(1);

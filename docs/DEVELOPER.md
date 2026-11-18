@@ -242,6 +242,7 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_reply_format.py` + `tests/cpp/test_reply_format.cpp` | Result-string length and status byte: C++ checks of `src/reply_format.h` (38 or 42 characters; current limit `11` or `91`), and that the simulator's replies agree. |
 | `tests/test_voltage_limit.py` + `tests/cpp/test_voltage_limit.cpp` | The anode/screen backstop: C++ checks of `src/voltage_limit.h` for both models, the user's maximum, the 1 V slack and NaN; and that no fixed 425 V is left in `mainwindow.cpp`. |
 | `tests/test_sweeps.py` (+ helper `tests/utmax_run.py`) | Whole sweeps of the real program against the simulator through the test hook: a uTracer6 sweep into 100 kΩ (voltages received, currents reported, heater on then off), a delayed sweep to 600 V (the 425 V fix), the same sweep with the positive-grid board, and a sweep above `VaMax` refused with an entry error. |
+| `tests/test_calibration_defaults.py` | Through the test hook: a `cal.txt` with no calibration factors, and one with unreadable ones, still sweep correctly (anode and grid voltages, currents) and are written back with the defaults; a new install's `cal.txt` has `Vg0`/`Vgm` and none of the obsolete grid keys. |
 | `tests/test_utmax_smoke.py` | Runs the built program with no window against the simulator and checks what it sends, on a uTracer6 with and without the positive-grid board. |
 
 The GitHub workflow runs all of them on Linux x64 and arm64 after building.
@@ -303,8 +304,9 @@ where they exist. The most serious:
   word is received but not yet shown.
 - ~~**425 V cap on delayed sweeps**~~ **fixed 2026-11-18**: one backstop for every
   measurement, `hvWithinLimit()` in `src/voltage_limit.h`.
-- **Calibration values not initialised** (`calData`), and the default `cal.txt`
-  has no `Vg0`/`Vgm`: missing keys take whatever was in memory.
+- ~~**Calibration values not initialised**~~ **fixed 2026-11-18**: every
+  `calData_t` field has a default; a new `cal.txt` has `Vg0`/`Vgm`; unreadable
+  values keep their default.
 - **Crash (division by zero) on the first plotted point** when the style sheet
   can't be opened: the pen list is never filled.
 - **Discharge waits up to 20 s** after a sweep (section 3.3).

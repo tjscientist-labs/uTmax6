@@ -8,6 +8,21 @@ where the fix comes from his fork.
 
 ## 2026-11-18
 
+- **Fixed: calibration values were never initialised.** 3.01 gave its
+  calibration values (`calData`) no defaults, and the main window is created on
+  the stack, so any key missing from `cal.txt` took whatever was in memory. In
+  test runs the anode factor came out as −89 254 and as 2.5 × 10³¹: uTmax sent
+  the anode at 0 V and the grid at 0 V instead of −2 V, still reported the sweep
+  as done, and wrote the garbage back to `cal.txt`. The `cal.txt` it created on a
+  new install wrote obsolete keys (`Vg05`, `Vg1`, `Vg4`, `Vg40`) instead of `Vg0`
+  and `Vgm`, so every new install ran with an uninitialised grid calibration
+  until the calibration wizard was used. An unreadable value (`Va=abc`) became 0.
+  Now: every field of `calData_t` (`src/mainwindow.h`) has a default (the values
+  3.01's own new-install file and calibration reset use: factors 1, grid offset
+  0, 6800 Ω, 300 V, 18 Ω, 50 V); the new-install `cal.txt` writes `Vg0=0` and
+  `Vgm=1.0`; `ReadCalibration()` keeps the default (with a warning) for a value
+  that is not a finite number, and skips a line without `=` (3.01 read past the
+  end of it). Tests: `tests/test_calibration_defaults.py`.
 - **Test hook: `uTmax --test-sweep <file>`** (for automated tests only; no
   change to how uTmax behaves without the option). New `src/test_hook.cpp`:
   waits until uTmax has opened the port and is idle, picks the tube, fills in the

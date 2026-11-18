@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 46
+put the old code back in a scratch copy and check that the test fails. All 58
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -40,12 +40,18 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 | A positive grid voltage on a uTracer6 was sent as **+100 V** (+1 V went out as `FFFF`), and the heater setting was lost | Simulator decoding uTmax's command | **Fixed** |
 | With Dekker's positive-grid board, uTmax **never accepted a reply** (42 characters, not 38): it timed out and reconnected over and over; a current-limit status `91` would have been missed | Simulator with the board fitted, real program | **Fixed** |
 | Sweeps with a hold delay **stopped above 425 V** on a uTracer6; sweeps without a delay had no last-moment check at all | Code comparison with Dean Jenkins' fork; confirmed with a whole sweep | **Fixed**; a 600 V delayed sweep now runs end to end |
-| **Calibration values never initialised**: a key missing from `cal.txt` takes whatever was in memory (seen: an anode factor of −89254), and the `cal.txt` made on a new install has no grid calibration at all | First whole sweep through the test hook | Next to fix |
+| **Calibration values never initialised**: a key missing from `cal.txt` took whatever was in memory (seen: an anode factor of −89 254, and 2.5 × 10³¹), uTmax sent 0 V and still called the sweep done; the `cal.txt` made on a new install had no grid calibration at all | First whole sweep through the test hook | **Fixed** |
 | **Crash on the first point of every sweep** when the style sheet can't be found (a division by zero in the plot code) | First whole sweep through the test hook | To fix |
 | uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
 
 ## Done
 
+- **2026-11-18** — **Fixed: calibration values never initialised.** Every
+  calibration value now starts from a defined default; a new install's `cal.txt`
+  includes the grid calibration; a value that can't be read keeps its default
+  instead of becoming 0. Before the fix, a test with a partial `cal.txt` sent the
+  anode at 0 V instead of 30-300 V and the grid at 0 V instead of −2 V, and still
+  reported the sweep as done. Now the same test sweeps correctly.
 - **2026-11-18** — **Test hook: whole sweeps in the tests.** `uTmax --test-sweep`
   runs one sweep from a settings file and writes a report. Four end-to-end sweep
   tests: a uTracer6 sweep into 100 kΩ (currents within 0.2 %), a delayed sweep to
@@ -118,7 +124,7 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [ ] Allow a positive grid only when the extension board is fitted
 - [ ] Check every command before sending, treat a bad echo as an error, check replies
 - [x] **Fix the 425 V limit on delayed sweeps**
-- [ ] Initialise every calibration value; write `Vg0`/`Vgm` in a new `cal.txt`
+- [x] **Initialise every calibration value; write `Vg0`/`Vgm` in a new `cal.txt`**
 - [ ] Don't crash when the style sheet is missing
 - [ ] Send End Measurement (discharge) on Stop and at the end of each sweep
 - [ ] Stop rewriting `cal.txt` at every start

@@ -36,27 +36,30 @@ class MainWindow : public QMainWindow
     
 public:
     explicit MainWindow(QWidget *parent = 0);
+    // uTmax6: every value has a default (3.01 had none, so a key missing from
+    // cal.txt took whatever was in memory). The defaults are the values 3.01's
+    // new-install cal.txt and its calibration reset use: factors 1, grid offset 0.
     struct calData_t
     {
-        float VaVal;
-        float VsVal;
-        float IaVal;
-        float IsVal;
-        float VsuVal;
-        float Vg0;
-        float Vgm;
-        float Vg05Val;
-        float Vg1Val;
-        float Vg4Val;
-        float Vg40Val;
-        float VnVal;
-        float RaVal;
-        float VaMax;
-        float IaRsense;
-        float IsRsense;
-        float VgMax;
-        float heaterscale; //Max heater voltage, only use if external heater supply enabled
-        short Firmware; // == 1 for uTracer
+        float VaVal = 1.0f;
+        float VsVal = 1.0f;
+        float IaVal = 1.0f;
+        float IsVal = 1.0f;
+        float VsuVal = 1.0f;
+        float Vg0 = 0.0f;
+        float Vgm = 1.0f;
+        float Vg05Val = 1.0f;     // obsolete, kept for the struct layout
+        float Vg1Val = 1.0f;      // obsolete
+        float Vg4Val = 1.0f;      // obsolete
+        float Vg40Val = 1.0f;     // obsolete
+        float VnVal = 1.0f;
+        float RaVal = 6800.0f;
+        float VaMax = 300.0f;
+        float IaRsense = 18.0f;
+        float IsRsense = 18.0f;
+        float VgMax = 50.0f;
+        float heaterscale = 0.0f; //Max heater voltage, only use if external heater supply enabled
+        short Firmware = 100; // == 1 for uTracer (stored x100 after reading)
         QString SavePath;
         QString Style;
     } calData;

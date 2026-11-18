@@ -2,6 +2,10 @@
 
     report, sim_log = run_sweep({"VaStart": 30, "VaEnd": 300, ...}, sim_args=["--load", "r:100k"])
 
+cal=None writes a complete cal.txt; a string is written as cal.txt instead
+({port} and {style} are filled in); cal=False writes none (a new install).
+The cal.txt uTmax leaves behind is returned in report["cal_after"].
+
 Starts the simulator on a temporary port, gives uTmax a temporary home folder
 with a complete cal.txt (a uTracer6 unless told otherwise) and a real style
 sheet, and runs it with Qt's offscreen platform and "--test-sweep" (the test
@@ -34,7 +38,7 @@ def _no_core_dumps():
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
 
 
-def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90):
+def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90, cal=None):
     tmp = tempfile.mkdtemp(prefix="utmax-sweep-")
     try:
         files = os.path.join(tmp, "home", "uTmax_files")
@@ -45,12 +49,17 @@ def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90):
         shutil.copy(os.path.join(ROOT, "src", "Themes", "Utracer Dark.qss"), style)
         port = os.path.join(tmp, "utracer")
         rs = "4.7" if utracer6 else "18"
-        with open(os.path.join(files, "cal.txt"), "w") as f:
-            # Every calibration key uTmax reads: 3.01 leaves missing ones uninitialised.
-            f.write(f"COM={port}\nVa=1\nVs=1\nIa=1\nIs=1\nVsu=1\nVg0=0\nVgm=1\nVn=1\n"
-                    f"RaVal={'4700' if utracer6 else '6800'}\nVaMax={va_max}\n"
-                    f"IaRsense={rs}\nIsRsense={rs}\nVgMax={'100' if utracer6 else '50'}\n"
-                    f"Firmware=1\nuTracer6={int(utracer6)}\nheater=0\nStyle={style}\n")
+        cal_path = os.path.join(files, "cal.txt")
+        if isinstance(cal, str):
+            with open(cal_path, "w") as f:
+                f.write(cal.format(port=port, style=style))
+        elif cal is None:
+            with open(cal_path, "w") as f:
+                # Every calibration key uTmax reads (3.01 left missing ones uninitialised).
+                f.write(f"COM={port}\nVa=1\nVs=1\nIa=1\nIs=1\nVsu=1\nVg0=0\nVgm=1\nVn=1\n"
+                        f"RaVal={'4700' if utracer6 else '6800'}\nVaMax={va_max}\n"
+                        f"IaRsense={rs}\nIsRsense={rs}\nVgMax={'100' if utracer6 else '50'}\n"
+                        f"Firmware=1\nuTracer6={int(utracer6)}\nheater=0\nStyle={style}\n")
         report_path = os.path.join(tmp, "report.json")
         settings = dict(sweep)
         settings.setdefault("HtrSecs", 1)
@@ -84,6 +93,7 @@ def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90):
         with open(report_path) as f:
             report = json.load(f)
         report["exit_status"] = proc.returncode
+        report["cal_after"] = open(cal_path).read() if os.path.exists(cal_path) else None
         with open(log) as f:
             commands = [json.loads(line) for line in f]
         return report, commands
