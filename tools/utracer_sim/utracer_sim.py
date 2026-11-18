@@ -19,6 +19,9 @@ path (the COM= line in ~/uTmax_files/cal.txt, or the Debug dialog). Then:
     40  heater on/off at the given voltage                          (no reply)
     50  "ping": read all ADC channels                               (38-char reply)
 
+  With --grid-board (Dekker's positive-grid extension, uTracer6 only) the
+  status byte has bit 7 set and replies are 42 characters.
+
 * the currents come from a model of the device under test (see loads.py),
   and every conversion between volts and codes comes from a hardware profile
   (see hardware.py and profiles/), not from uTmax.
@@ -55,8 +58,12 @@ AUTO_AVG_FOR_GAIN = [1, 1, 1, 1, 2, 2, 4, 8]   # what uTmax 3.01 assumes for aut
 class UTracer:
     """The simulated instrument's state and its reaction to each command."""
 
-    def __init__(self, profile, load, faults, log):
+    def __init__(self, profile, load, faults, log, grid_board=False):
         self.p = profile
+        # Dekker's positive-grid extension board (uTracer6 only): allows a positive
+        # grid, sets bit 7 of the status byte and adds a grid-current word, making
+        # the reply 42 characters (tubetester6.html §14).
+        self.grid_board = grid_board
         self.load = load
         self.faults = faults
         self.log = log
@@ -114,6 +121,8 @@ class UTracer:
         elif code in ("10", "20"):
             self.set_voltages(words)
             entry["decoded"] = self.describe()
+            if self.grid_note:
+                entry["warning"] = self.grid_note
             if code == "10":
                 reply, meas = self.measure()
                 entry["measured"] = meas
@@ -125,7 +134,7 @@ class UTracer:
             self.vf = self.p.heater_code_to_volts(words[3]) or 0.0
             entry["decoded"] = {"heater_Vrms": round(self.vf, 2)}
         elif code == "50":
-            reply = self.format_reply("10", 0, 0, 0, 0, 0, 0)
+            reply = self.format_reply("90" if self.grid_board else "10", 0, 0, 0, 0, 0, 0)
             entry["decoded"] = self.describe()
 
         reply = self.apply_faults(reply, entry)
@@ -138,6 +147,11 @@ class UTracer:
         self.va_res = self.p.hv_code_to_volts(va & 0x3FF)
         self.vs_res = self.p.hv_code_to_volts(vs & 0x3FF)
         self.vg = self.p.grid_code_to_volts(vg)
+        self.grid_note = None
+        if self.vg > 0 and not self.grid_board:
+            # Without the extension board a positive grid word drives nothing.
+            self.grid_note = f"positive grid {self.vg:+.2f} V requested but no extension board: grid at 0 V"
+            self.vg = 0.0
         hv = self.p.heater_code_to_volts(vf)
         if hv is not None:
             self.vf = hv
@@ -162,12 +176,12 @@ class UTracer:
                 break
             ia, is_ = 0.5 * (ia + na), 0.5 * (is_ + ns)
 
-        status = "10"
+        status = "90" if self.grid_board else "10"
         tripped = (ia > self.current_limit_amps(p.r_sense_a)
                    or is_ > self.current_limit_amps(p.r_sense_s)
                    or self.faults.get("trip"))
         if tripped:
-            status = "11"
+            status = "91" if self.grid_board else "11"
 
         ga = self.gain_a if self.gain_a < 8 else p.auto_gain(ia, p.r_sense_a)
         gs = self.gain_s if self.gain_s < 8 else p.auto_gain(is_, p.r_sense_s)
@@ -193,11 +207,14 @@ class UTracer:
         status, Ia, Ia_raw, Is, Is_raw, Va, Vs, Vsupply, Vneg, gain_a, gain_s."""
         def w(x):
             return f"{max(0, min(0xFFFF, int(x))):04X}"
-        return (status + w(ia) + w(ia_raw) + w(is_) + w(is_raw)
-                + w(self.p.hv_volts_to_code(self.va_res))
-                + w(self.p.hv_volts_to_code(self.vs_res))
-                + w(self.p.vsu_code()) + w(self.p.vn_code())
-                + f"{ga:02X}{gs:02X}")
+        out = (status + w(ia) + w(ia_raw) + w(is_) + w(is_raw)
+               + w(self.p.hv_volts_to_code(self.va_res))
+               + w(self.p.hv_volts_to_code(self.vs_res))
+               + w(self.p.vsu_code()) + w(self.p.vn_code())
+               + f"{ga:02X}{gs:02X}")
+        if self.grid_board:
+            out += w(0)          # grid-current ADC word (AN12); the loads draw no grid current
+        return out
 
     def apply_faults(self, reply, entry):
         f = self.faults
@@ -223,7 +240,7 @@ def serve(args):
     faults = {"no_reply_after": args.no_reply_after, "garble_every": args.garble_every,
               "trip": args.trip}
     log = open(args.log, "a", encoding="utf-8") if args.log else None
-    sim = UTracer(profile, load, faults, log)
+    sim = UTracer(profile, load, faults, log, grid_board=args.grid_board)
 
     master, slave = os.openpty()
     tty.setraw(slave)
@@ -231,7 +248,8 @@ def serve(args):
     if os.path.islink(args.link) or os.path.exists(args.link):
         os.unlink(args.link)
     os.symlink(slave_name, args.link)
-    print(f"uTracer simulator: profile={profile.name}, load={load.name}", flush=True)
+    print(f"uTracer simulator: profile={profile.name}, load={load.name}"
+          + (", positive-grid board fitted" if args.grid_board else ""), flush=True)
     print(f"serial port: {args.link} -> {slave_name}", flush=True)
     if args.ready_file:
         with open(args.ready_file, "w") as f:
@@ -278,6 +296,8 @@ def main(argv=None):
     ap.add_argument("--no-reply-after", type=int, help="fault: stop replying after N commands")
     ap.add_argument("--garble-every", type=int, help="fault: corrupt every Nth reply")
     ap.add_argument("--trip", action="store_true", help="fault: report a current-limit trip on every measurement")
+    ap.add_argument("--grid-board", action="store_true",
+                    help="fit Dekker's positive-grid extension board (42-character replies)")
     ap.add_argument("--ready-file", help="write the port path here once listening (for test scripts)")
     serve(ap.parse_args(argv))
 

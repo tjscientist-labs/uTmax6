@@ -84,8 +84,10 @@ class Profile:
     def grid_code_to_volts(self, word):
         """Grid volts for the 16-bit word in a command (negative = more bias)."""
         if self.grid_bits == 16:
-            signed = word - 0x10000 if word & 0x8000 else word
-            return -signed * self.grid_full_scale_v / 32767.0
+            # uTracer6 (Dekker, tubetester6.html §9): bits 0-14 are the magnitude at
+            # 100 V full scale; bit 15 set means a POSITIVE grid (extension board only).
+            magnitude = (word & 0x7FFF) * self.grid_full_scale_v / 32767.0
+            return magnitude if word & 0x8000 else -magnitude
         # uTracer3: 12-bit PWM packed as uTmax does it (low 2 bits in bits 14-15).
         g = ((word & 0x3FF) << 2) | ((word >> 14) & 0x3)
         return -g * self.grid_full_scale_v / 4096.0

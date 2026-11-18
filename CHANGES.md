@@ -8,6 +8,15 @@ where the fix comes from his fork.
 
 ## 2026-11-18
 
+- **Finding (not yet changed): positive grid on a uTracer6.** For a positive
+  grid voltage, uTmax 3.01 sends a grid word of `FFFF` (+100 V to Dekker's
+  firmware) and loses the heater word, because `GetVg()` returns a negative
+  number as unsigned and the 8-digit result is cut off. See
+  `tests/test_known_bugs.py` and `tests/repro/positive_grid_word.cpp`. Fix to
+  follow in its own commit.
+- **Simulator:** uTracer6 profile checked against Dekker's uTracer6 page; grid
+  words decoded as Dekker's sign and magnitude; `--grid-board` option for the
+  positive-grid extension (status bit 7, 42-character replies).
 - **Software uTracer and first tests** (no change to the program). Added
   `tools/utracer_sim/`, a simulator of the uTracer on a virtual serial port, and
   `tests/`. The first end-to-end test records what uTmax 3.01 does on its own:

@@ -57,6 +57,7 @@ Stop it with Ctrl-C.
 | `--no-reply-after N` | Fault: stop replying after N commands (tests a lost connection). |
 | `--garble-every N` | Fault: corrupt every Nth reply. |
 | `--trip` | Fault: report a current-limit trip on every measurement. |
+| `--grid-board` | Fit Dekker's positive-grid extension board (uTracer6): status bit 7 set, 42-character replies. Without it, a positive grid word is ignored and logged as a warning. |
 
 ### Loads
 
@@ -104,11 +105,12 @@ The simulator does the same. For a measurement it:
 The simulator is there to catch mistakes in the host program. If it borrowed its
 conversion factors from uTmax it would agree with uTmax's mistakes. So every
 hardware constant lives in `profiles/<model>.json` with a note of where it came
-from. The uTracer3 profile uses Dekker's published values (they already show that
-uTmax's default anode divider reads about 2.4 % low before calibration). The
-uTracer6 profile is a **first draft**: several values still come from uTmax and
-are marked *TO VERIFY* until they are checked against Dekker's uTracer6
-schematic.
+from. Both profiles use Dekker's published values: the uTracer3 profile from his
+protocol description (it shows that uTmax's default anode divider reads about
+2.4 % low before calibration), the uTracer6 profile from his uTracer6
+construction log (1 MΩ / 4.7 kΩ dividers, 4.7 Ω sense resistors, 16-bit
+sign-and-magnitude grid word). One uTracer6 value is still open: which of its
+two negative rails the reply reports.
 
 ## Tests
 
@@ -125,7 +127,7 @@ window against the simulator and checks what it sends; give it the program with
 
 ## Limits (for now)
 
-- The uTracer6 constants are not yet verified (see above).
+- Which uTracer6 negative rail the reply reports is not yet known.
 - Reservoir droop during a pulse is not modelled.
 - Auto-averaging uses the rule uTmax assumes; the firmware's real rule is to be checked.
 - Nick Barton's own firmware commands (`51`–`59`, for his uTracer3 replacement

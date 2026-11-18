@@ -1,21 +1,66 @@
 {
   "name": "utracer6",
-  "notes": "Ronald Dekker's uTracer6 (1000 V / 1 A). FIRST DRAFT: several values are taken from uTmax 3.01, which was written without the hardware, and some sources disagree. Entries marked TO VERIFY must be checked against Dekker's uTracer6 schematic before the simulator can be used to judge uTmax's uTracer6 conversions.",
+  "notes": "Ronald Dekker's uTracer6 (1000 V / 1 A). Values checked against Dekker's uTracer6 construction log (Dekker, dos4ever.com/uTracerlog6/tubetester6.html, sections 7-10 and 14) on 2026-11-18, except where an entry says otherwise.",
   "constants": {
-    "hv_divider_top_ohm":        {"value": 1000000, "source": "uTmax 3.01 Update_adc_scales() uTracer6 branch and changelog 2.21k ('added 1meg resistor for ut6 voltage divider'). TO VERIFY"},
-    "hv_divider_bottom_ohm":     {"value": 4700,    "source": "UNVERIFIED placeholder (gives about 1069 V full scale). In uTmax this is the RaVal calibration entry. TO VERIFY"},
-    "anode_sense_ohm":           {"value": 4.7,     "source": "uTracer6 notes (Dekker construction log): 4.7 ohm default sense resistors. TO VERIFY"},
-    "screen_sense_ohm":          {"value": 4.7,     "source": "as anode. TO VERIFY"},
-    "supply_divider_top_ohm":    {"value": 10000,   "source": "uTmax 3.01 Update_adc_scales() uTracer6 branch; changelog 2.21k '10k/1k divider for positive supply'. TO VERIFY"},
-    "supply_divider_bottom_ohm": {"value": 1000,    "source": "as above. TO VERIFY"},
-    "neg_divider_top_ohm":       {"value": 47000,   "source": "uTmax 3.01 code uses (47+4.7)/4.7, but its changelog 2.21k says '200k/2k divider for negative rail'. CONFLICT, TO VERIFY"},
-    "neg_divider_bottom_ohm":    {"value": 4700,    "source": "as above. CONFLICT, TO VERIFY"},
-    "supply_volts":              {"value": 19.5,    "source": "uTracer6 runs from a 19.5 V laptop supply (Dekker)."},
-    "neg_rail_volts":            {"value": -15.0,   "source": "uTmax 3.01 changelog 2.21m 'Changed Vneg to -15V for uTracer 6'. Our notes say the grid amplifier runs from a -85 V rail; which rail the ADC sees is TO VERIFY"},
-    "grid_dac_bits":             {"value": 16,      "source": "uTracer6 grid DAC is a DAC8562 (16-bit); uTmax 3.01 GetVg() uses a signed 16-bit word"},
-    "grid_full_scale_volts":     {"value": 100,     "source": "uTracer6 grid range 0 to -100 V (Dekker). uTmax's VgMax calibration entry must match. TO VERIFY"},
-    "cathode_diode_drop_volts":  {"value": 0.0,     "source": "uTmax adds a 0.5 V diode drop for the uTracer3; whether the uTracer6 has it is TO VERIFY"},
-    "hv_switch_drop_volts":      {"value": 0.0,     "source": "uTracer6 uses a MOSFET switch (FQD2N100), not the uTracer3's darlington. TO VERIFY"},
-    "max_hv_volts":              {"value": 1000,    "source": "Dekker: 0-1000 V"}
+    "hv_divider_top_ohm": {
+      "value": 1000000,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8: R2 = 1M (R63/R83, HV chip resistors); V_HV = 1.0448 n"
+    },
+    "hv_divider_bottom_ohm": {
+      "value": 4700,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8: R1 = 4k7"
+    },
+    "anode_sense_ohm": {
+      "value": 4.7,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §10: default Rs = 4.7 ohm (user-changeable, entered on the cal form)"
+    },
+    "screen_sense_ohm": {
+      "value": 4.7,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §10"
+    },
+    "supply_divider_top_ohm": {
+      "value": 10000,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8: R5/R6 = 1k/10k, V_sup = 0.0538 n"
+    },
+    "supply_divider_bottom_ohm": {
+      "value": 1000,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8"
+    },
+    "neg_divider_top_ohm": {
+      "value": 47000,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8: -15 V rail via 4k7/47k reads n = 651. A second rail, -85 V via 4k7/200k (n = 600), is read on AN11; which one the result string carries is UNVERIFIED. uTmax 3.01's code uses 47/4.7, consistent with the -15 V rail."
+    },
+    "neg_divider_bottom_ohm": {
+      "value": 4700,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8"
+    },
+    "supply_volts": {
+      "value": 19.5,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8: cathode offset 19.5 V"
+    },
+    "neg_rail_volts": {
+      "value": -15.0,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8 (see the divider entry)"
+    },
+    "grid_dac_bits": {
+      "value": 16,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §9: n = 32767 |Vg| / 100, bit 15 set for a positive grid"
+    },
+    "grid_full_scale_volts": {
+      "value": 100,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §9"
+    },
+    "cathode_diode_drop_volts": {
+      "value": 0.0,
+      "source": "Not in Dekker's uTracer6 formulas (V_tube = V_HV - V_supl). uTmax 3.01 still adds the uTracer3's 0.5 V."
+    },
+    "hv_switch_drop_volts": {
+      "value": 0.0,
+      "source": "Not in Dekker's uTracer6 formulas. uTmax 3.01 still subtracts the uTracer3 darlington's 0.75 V."
+    },
+    "max_hv_volts": {
+      "value": 1000,
+      "source": "Dekker: 0-1000 V"
+    }
   }
 }

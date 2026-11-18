@@ -8,6 +8,15 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ## Done
 
+- **2026-11-18** — **Found: a positive grid on a uTracer6 sends +100 V.** uTmax
+  3.01 formats a positive grid voltage as a negative number; the command is cut
+  short and the uTracer6 would apply +100 V instead of, say, +1 V. Reproduced
+  and recorded as a test; fix next.
+- **2026-11-18** — Simulator's uTracer6 profile checked against Dekker's uTracer6
+  page; positive-grid extension board added (42-character replies).
+- **2026-11-18** — Automatic builds pass on Windows as well; Linux runs the tests
+  against the freshly built program on x64 and arm64.
+- **2026-11-18** — Decided: keep supporting the uTracer3 and uTracer3+.
 - **2026-11-18** — **Software uTracer** (`tools/utracer_sim/`): echoes and answers
   Dekker's protocol, models resistor, diode and 12AX7 loads, injects faults, logs
   every command. Its formulas are checked against Dekker's published figures.
@@ -28,8 +37,7 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ## In progress
 
-- Checking the simulator's uTracer6 constants against Dekker's schematic.
-- Windows build in CI (first attempt lacked a make tool; fixed, re-running).
+- Which negative rail the uTracer6 reports (-15 V or -85 V).
 - Design of a 1000 V Matrix relay board to replace Nick Barton's.
 - Dummy-load designs for the first hardware checks.
 
@@ -37,9 +45,12 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ### Software
 - [x] Simulator: Dekker's protocol, a tube model, fault injection, command log
-- [ ] Simulator: verified uTracer6 constants; Windows support; reservoir droop
+- [x] Simulator: uTracer6 constants checked against Dekker's page
+- [ ] Simulator: Windows support; reservoir droop
 - [ ] Tests that drive a full sweep (needs a test hook in uTmax)
 - [ ] Tests that record 3.01's present behaviour
+- [ ] **Fix the positive-grid command on the uTracer6** (most urgent)
+- [ ] Handle the positive-grid board's 42-character replies
 - [ ] Fix the 425 V limit on delayed sweeps
 - [ ] Send End Measurement (discharge) on Stop and at the end of each sweep
 - [ ] Stop rewriting `cal.txt` at every start
@@ -71,6 +82,11 @@ described in [`CHANGES.md`](../CHANGES.md).
 - [ ] Dummy-load build guide
 - [ ] Matrix board build guide
 - [ ] User manual
+
+### Other uTracers
+- [ ] Every test against the uTracer3 profile as well
+- [ ] Find out whether the uTracer NXT uses the same protocol
+- [ ] Test builds for uTracer3 owners
 
 ### Later ideas
 - [ ] Transistor curve tracing (see `PLAN.md`)

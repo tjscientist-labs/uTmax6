@@ -6,7 +6,7 @@ what is next, is tracked in [`PROGRESS.md`](PROGRESS.md).
 ## Aim
 
 A uTmax that a uTracer6 owner can trust at 1000 V, on Linux, a Raspberry Pi or
-Windows, whose code is tested and commented, and whose every change is explained.
+Windows, and that keeps working for owners of the earlier uTracer3 and uTracer3+, whose code is tested and commented, and whose every change is explained.
 Anyone should be able to repeat any step: build the program, run the simulator,
 build the dummy loads, build the relay board, and check the results.
 
@@ -47,7 +47,23 @@ current limit and on a lost connection. These tests are written against 3.01 as
 it is, so that later changes cannot alter behaviour without a test failing.
 
 ### 4. Bug fixes, one per commit
-Each with its own test. The list so far:
+Each with its own test. The list so far, most serious first:
+
+- **Positive grid on a uTracer6 sends the wrong command.** `GetVg()` returns a
+  negative number as unsigned; `%04X` prints 8 digits and `snprintf` cuts the
+  command at 18 characters. For +1 V the uTracer6 receives grid `FFFF`, which
+  Dekker's firmware reads as **+100 V**, and the heater word is lost. The hold
+  path uses `sprintf` with no limit and sends 22 characters, throwing the
+  protocol out of step. Reproduced in `tests/repro/positive_grid_word.cpp`;
+  recorded in `tests/test_known_bugs.py`. Dekker's encoding is magnitude in
+  bits 0-14 and bit 15 set for a positive grid.
+- **Positive-grid extension board: replies are 42 characters** (status bit 7
+  set, plus a grid-current word), but uTmax 3.01 waits for exactly 38, so it
+  probably cannot complete a measurement with the board fitted. To be confirmed
+  with the simulator (`--grid-board`) once a test can drive a sweep.
+- uTracer3 constants used in uTracer6 mode: uTmax adds the uTracer3's 0.5 V
+  diode drop and subtracts its 0.75 V darlington drop; Dekker's uTracer6
+  formulas have neither (the uTracer6 switch is a MOSFET).
 
 - 425 V limit on sweeps with a non-zero delay (the hold path); should follow `VaMax`.
 - Discharge (End Measurement, command `30`) sent only by a 20-second idle
@@ -61,8 +77,10 @@ Each with its own test. The list so far:
 - Smaller items: integer division in `Update_adc_scales()`, a dead assignment in
   `GetVg()`, no-op `d.remove(i,0)` calls in `readData()`, unchecked `QFile::open()`
   results, an uninitialised `size`, a switch fall-through.
-- Check the uTracer6 conversion constants (1 MΩ dividers, negative-rail and supply
-  dividers) against Dekker's schematic.
+- uTracer6 conversion constants: Dekker's page confirms 1 MΩ / 4.7 kΩ dividers,
+  1 kΩ / 10 kΩ supply divider and 4.7 Ω sense resistors (the simulator's profile
+  now uses them). The uTracer6 has two negative rails (-15 V and -85 V); which
+  one the result string carries is still to be confirmed.
 
 ### 5. Reorganise and comment
 Move the serial protocol and the voltage/current conversions out of the 4,000-line
@@ -95,6 +113,19 @@ Installation, calibration, safety, running sweeps, the tube library, the Matrix
 board, and troubleshooting. Its outline and the parts that will not change are
 written early; screenshots and step-by-step procedures come after the hardware
 checks.
+
+## Which uTracers
+
+- **uTracer3 and uTracer3+** (Dekker's original firmware): supported by uTmax
+  3.01 and kept working. Every test runs against both hardware profiles. They
+  can't be tested on hardware here, so test builds will be offered to uTracer3
+  owners in the uTracer group before a release.
+- **uTracer3 with Nick Barton's replacement firmware chip** (commands `51`-`59`,
+  calibration stored on the chip): kept working as uTmax 3.01 has it, but
+  untestable here without that chip.
+- **uTracer6**: the main target.
+- **uTracer NXT**: not yet known whether it uses the same protocol. To be checked
+  against Dekker's NXT pages before anything is promised.
 
 ## Hardware alongside the software
 

@@ -55,10 +55,21 @@ class Conversions(unittest.TestCase):
         for code in (0, 1, 100, 512, 1023):
             self.assertEqual(p.hv_volts_to_code(p.hv_code_to_volts(code)), code)
 
-    def test_utracer6_grid_word_is_signed_16_bit(self):
+    def test_utracer6_grid_word_is_sign_and_magnitude(self):
+        # Dekker tubetester6.html §9: n = 32767 |Vg| / 100, OR 8000H if Vg > 0.
         p = Profile.find("utracer6")
         self.assertAlmostEqual(p.grid_code_to_volts(0x7FFF), -100.0, places=3)
+        self.assertAlmostEqual(p.grid_code_to_volts(0x028F), -2.0, places=2)   # n = 655
+        self.assertAlmostEqual(p.grid_code_to_volts(0x8148), +1.0, places=2)   # 8000H | 328
         self.assertAlmostEqual(p.grid_code_to_volts(0x0000), 0.0)
+
+    def test_utracer6_dekker_scale_factors(self):
+        # Dekker tubetester6.html §8: V_HV = 1.0448 n, V_sup = 0.0538 n, -15 V reads n = 651.
+        p = Profile.find("utracer6")
+        self.assertAlmostEqual(p.hv_code_to_volts(1), 1.0448, places=3)
+        self.assertAlmostEqual(p.hv_code_to_volts(1023) - p.hv_code_to_volts(1022), 1.0448, places=3)
+        self.assertAlmostEqual(p.vsu_code(), 18.6 * 19.5, delta=1.5)
+        self.assertEqual(p.vn_code(), 651)
 
     def test_heater_pwm_is_rms(self):
         p = Profile.find("utracer6")
@@ -169,6 +180,30 @@ class Protocol(unittest.TestCase):
         self.sim.send("300000000000000000", expect_reply=False)
         out = self.sim.send("500000000000000000", expect_reply=True)
         self.assertEqual(int(out[18 + 18:18 + 22], 16), 0)   # Va field back to zero
+
+
+class GridBoard(unittest.TestCase):
+    """Dekker's positive-grid extension board: status bit 7 set, 42-character reply."""
+
+    def test_reply_is_42_characters_with_status_90(self):
+        sim = SimulatorProcess("--grid-board")
+        try:
+            os.write(sim.fd, b"500000000000000000")
+            time.sleep(0.3)
+            out = os.read(sim.fd, 256).decode()
+            self.assertEqual(len(out), 18 + 42)
+            self.assertEqual(out[18:20], "90")
+        finally:
+            sim.close()
+
+    def test_positive_grid_without_board_is_ignored_and_logged(self):
+        sim = SimulatorProcess()
+        try:
+            sim.send(command("10", va=100, vg=0x8148), expect_reply=True)
+            entry = [e for e in sim.log() if e["cmd"] == "measure"][-1]
+            self.assertIn("no extension board", entry.get("warning", ""))
+        finally:
+            sim.close()
 
 
 class Faults(unittest.TestCase):
