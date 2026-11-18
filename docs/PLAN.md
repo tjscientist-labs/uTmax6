@@ -61,6 +61,16 @@ Each with its own test. The list so far, most serious first:
   set, plus a grid-current word), but uTmax 3.01 waits for exactly 38, so it
   probably cannot complete a measurement with the board fitted. To be confirmed
   with the simulator (`--grid-board`) once a test can drive a sweep.
+- **No checking of what goes on the wire.** Dekker's protocol has no checksum or
+  CRC; its only check is the character echo, which uTmax compares but only
+  after the uTracer has already acted, and replies are not checked at all (a bad
+  hex digit silently becomes 0). A checksum can't be added without changing
+  Dekker's firmware, and would not have caught the positive-grid bug anyway
+  (uTmax built a wrong command and would have checksummed it). So uTmax6 adds
+  host-side checks: (1) every command is checked before sending, exactly 18 hex
+  characters and every field inside its range for the uTracer model; (2) an echo
+  that doesn't match stops the sweep and discharges; (3) replies are checked for
+  hex, a known status byte, and reservoir voltages close to what was requested.
 - uTracer3 constants used in uTracer6 mode: uTmax adds the uTracer3's 0.5 V
   diode drop and subtracts its 0.75 V darlington drop; Dekker's uTracer6
   formulas have neither (the uTracer6 switch is a MOSFET).
