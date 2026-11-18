@@ -146,6 +146,14 @@ checks.
   contact. Schematic, PCB files and a parts list will be published as open hardware,
   crediting his design.
 - **Dummy loads** for stage 7, published with values, parts and ratings.
+- **A plain case anyone can build**, alongside the steampunk trunk: a stock
+  aluminium or ABS enclosure with 1:1 printable drilling templates (hand tools and
+  a drill, no CNC or wood shop); one top plate with the tube sockets, a patch field
+  on 1 kV-rated jacks, an HV lamp and a clear cover over the tube; mounting for the
+  pin-switch board under the socket plate; an earthed or fully insulated case and a
+  cover interlock. It works with any laptop over a USB isolator, and **has room
+  for an optional Raspberry Pi and display**, covered by an **addendum to the
+  case's build guide**.
 
 ## Later ideas (not started)
 

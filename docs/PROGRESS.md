@@ -8,6 +8,7 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ## Done
 
+- **2026-11-18** — Decided: a plain, easy-to-build case alongside the steampunk trunk, with room for an optional Raspberry Pi and display.
 - **2026-11-18** — **Developer manual** (`docs/DEVELOPER.md`): structure, state machine, a sweep step by step, protocol, conversions, files, simulator, tests, how to make a change.
 - **2026-11-18** — **Found: a positive grid on a uTracer6 sends +100 V.** uTmax
   3.01 formats a positive grid voltage as a negative number; the command is cut
@@ -72,6 +73,8 @@ described in [`CHANGES.md`](../CHANGES.md).
 - [ ] Matrix relay board: schematic and PCB
 - [ ] Matrix relay board: build and 1 kV insulation test
 - [ ] Dummy-load set: design, build, test
+- [ ] Plain case: design (stock enclosure, drilling templates, room for an optional Pi and display)
+- [ ] Plain case: build guide, plus an addendum for fitting the Pi and display
 
 ### Testing on a uTracer6
 - [ ] Capture Dekker's own program on the serial line and compare
