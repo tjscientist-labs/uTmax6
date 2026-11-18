@@ -35,6 +35,7 @@ LIBS += -lgsl -lgslcblas
 RESOURCES +=
 
 SOURCES += main.cpp\
+    test_hook.cpp \
     cal_wizard.cpp \
         mainwindow.cpp \
     cal_dialog.cpp \

@@ -174,6 +174,21 @@ public:
     void SetStyleSheet(void);
     bool calWizStep;
 
+    // uTmax6: test hook, for automated tests only (src/test_hook.cpp).
+    // "uTmax --test-sweep <file>" runs one sweep and writes a JSON report.
+    void startTestHook(const QString &file);
+    void testHookTick();
+    void testHookNote(const QString &kind, const QString &text);
+    void testHookFinish(const QString &why);
+    struct {
+        QMap<QString, QString> cfg;                 // the settings file
+        QList<QPair<QString, QString>> notes;       // (kind, text) in order
+        int phase = 0;                              // 0 wait idle, 1 sweeping, 2 done
+        int ticks = 0, idleTicks = 0;
+        bool seenBusy = false;
+        QTimer *timer = nullptr;
+    } testHook;
+
 public slots:
     //void onDeviceDiscovered(const QextPortInfo & );
     //void onDeviceRemoved(const QextPortInfo & );

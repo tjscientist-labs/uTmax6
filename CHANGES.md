@@ -8,6 +8,15 @@ where the fix comes from his fork.
 
 ## 2026-11-18
 
+- **Test hook: `uTmax --test-sweep <file>`** (for automated tests only; no
+  change to how uTmax behaves without the option). New `src/test_hook.cpp`:
+  waits until uTmax has opened the port and is idle, picks the tube, fills in the
+  sweep fields from the file, presses Start, lets the normal state machine run
+  the sweep, records every status-bar message and error dialog (closing the
+  dialog so a test can't hang), and writes a JSON report with every measured
+  point before quitting. `src/main.cpp` reads the option; `src/mainwindow.h`
+  declares the four hook functions and their state; `src/uTmax.pro` builds the
+  new file. Used by the new end-to-end tests in `tests/test_sweeps.py`.
 - **Fixed: delayed sweeps stopped above 425 V on a uTracer6.** In 3.01 the
   hold path (sweeps with a Delay set) refused any anode or screen voltage above
   a fixed 425 V, the uTracer3's ceiling, and stopped the sweep with "Internal

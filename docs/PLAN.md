@@ -46,9 +46,29 @@ voltages and currents it reports for known replies, its behaviour on Stop, on a
 current limit and on a lost connection. These tests are written against 3.01 as
 it is, so that later changes cannot alter behaviour without a test failing.
 
+**Test hook (done 2026-11-18):** `uTmax --test-sweep <file>` runs one sweep
+with given settings and writes a JSON report (`src/test_hook.cpp`), so tests can
+drive whole sweeps of the real program against the simulator
+(`tests/test_sweeps.py`, helper `tests/utmax_run.py`).
+
 ### 4. Bug fixes, one per commit
 Each with its own test. The list so far, most serious first:
 
+- **Calibration values not initialised; the default `cal.txt` lacks the grid
+  calibration.** Found 2026-11-18 with the test hook. `calData` is never given
+  default values and `MainWindow` is created on the stack, so any calibration key
+  missing from `cal.txt` takes whatever was in memory (seen: `Va=-89254.6`), and
+  3.01 then writes that back to `cal.txt` at the next start. The `cal.txt` that
+  3.01 creates on a new install writes obsolete keys (`Vg05`, `Vg1`, `Vg4`,
+  `Vg40`) instead of `Vg0` and `Vgm`, so the grid calibration of every new
+  install is uninitialised until the calibration wizard is run. With garbage
+  anode factors uTmax sent 0 V; it could as easily send full scale. Fix next.
+- **Crash on the first point of a sweep when the style sheet can't be opened.**
+  Found 2026-11-18 with the test hook. The plot pens are built only inside
+  `SetStyleSheet()`'s "file opened" branch; with no style file the pen list is
+  empty and `PlotTabWidget::plotUpdate()` takes `gpnum % penList->length()`, a
+  division by zero (SIGFPE). A new install's style path is
+  `<program folder>/style.qss`, which a Linux install doesn't have.
 - ~~**Positive grid on a uTracer6 sends the wrong command.**~~ **Fixed 2026-11-18**
   (`src/grid_word.h`, `tests/test_grid_word.py`). `GetVg()` returns a
   negative number as unsigned; `%04X` prints 8 digits and `snprintf` cuts the

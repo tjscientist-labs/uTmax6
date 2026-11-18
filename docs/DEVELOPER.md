@@ -241,12 +241,30 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_grid_word.py` + `tests/cpp/test_grid_word.cpp` | The uTracer6 grid word: C++ checks of `src/grid_word.h` against Dekker's formula, then its commands decoded by the simulator. Needs g++. |
 | `tests/test_reply_format.py` + `tests/cpp/test_reply_format.cpp` | Result-string length and status byte: C++ checks of `src/reply_format.h` (38 or 42 characters; current limit `11` or `91`), and that the simulator's replies agree. |
 | `tests/test_voltage_limit.py` + `tests/cpp/test_voltage_limit.cpp` | The anode/screen backstop: C++ checks of `src/voltage_limit.h` for both models, the user's maximum, the 1 V slack and NaN; and that no fixed 425 V is left in `mainwindow.cpp`. |
+| `tests/test_sweeps.py` (+ helper `tests/utmax_run.py`) | Whole sweeps of the real program against the simulator through the test hook: a uTracer6 sweep into 100 kΩ (voltages received, currents reported, heater on then off), a delayed sweep to 600 V (the 425 V fix), the same sweep with the positive-grid board, and a sweep above `VaMax` refused with an entry error. |
 | `tests/test_utmax_smoke.py` | Runs the built program with no window against the simulator and checks what it sends, on a uTracer6 with and without the positive-grid board. |
 
 The GitHub workflow runs all of them on Linux x64 and arm64 after building.
 
-**Still to come:** a test hook in uTmax6 so a test can start a sweep with given
-settings without clicking. Then tests can record whole sweeps.
+### The test hook
+
+`uTmax --test-sweep <file>` (`src/test_hook.cpp`) runs one sweep the way a
+person would, then quits. The file holds `key=value` lines: `out` (report path,
+required), `tube` (as shown in the tube list), `VaStart` `VaEnd` `VaSteps`,
+`VsStart` `VsEnd` `VsSteps`, `VgStart` `VgEnd` `VgSteps`, `Vh`, `HtrSecs`
+(heater warm-up, seconds), `Delay` (seconds; non-zero uses the hold command) and
+`timeout`. The hook waits until the port is open and uTmax is idle, fills in the
+fields, presses Start, and writes a JSON report: `result` (`done`,
+`never started`, `timeout`, `no port`), every status-bar message and dialog in
+order (dialogs are closed so nothing waits for a click), and every point in the
+data store. Without the option uTmax behaves exactly as before.
+
+`tests/utmax_run.py` wraps it: `run_sweep(settings, sim_args=[...])` starts the
+simulator, gives uTmax a temporary home with a complete `cal.txt` and a real style
+sheet (see section 11 for why both matter), runs the sweep with Qt's offscreen
+platform and core dumps off, and returns the report and the simulator's command
+log. A typical test checks both: what uTmax reported, and what the simulator
+received.
 
 ## 9. Making a change
 
@@ -285,6 +303,10 @@ where they exist. The most serious:
   word is received but not yet shown.
 - ~~**425 V cap on delayed sweeps**~~ **fixed 2026-11-18**: one backstop for every
   measurement, `hvWithinLimit()` in `src/voltage_limit.h`.
+- **Calibration values not initialised** (`calData`), and the default `cal.txt`
+  has no `Vg0`/`Vgm`: missing keys take whatever was in memory.
+- **Crash (division by zero) on the first plotted point** when the style sheet
+  can't be opened: the pen list is never filled.
 - **Discharge waits up to 20 s** after a sweep (section 3.3).
 - `cal.txt` rewritten on every start; `~/uTmax_files` not created; `Style.qss` and
   the log read and written in the current folder.

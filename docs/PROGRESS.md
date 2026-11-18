@@ -6,7 +6,52 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 **Last updated:** 2026-11-18
 
+## The software uTracer at work
+
+The simulator (`tools/utracer_sim/`) is built, tested and in daily use. It
+pretends to be a uTracer3 or uTracer6 on a virtual serial port, answers Ronald
+Dekker's protocol character for character, models a resistor, diode or 12AX7
+load, can misbehave on purpose (no reply, garbled reply, current-limit trip, the
+positive-grid board's longer replies), and logs every command it receives,
+decoded into volts.
+
+**How it is used.** Every change to uTmax6 goes through it, three ways:
+
+1. **Decoding single commands.** Small C++ checks build the exact command uTmax
+   would send, and the simulator decodes it as the uTracer would, so an encoding
+   is checked against the instrument, not against itself.
+2. **The real program, idle.** uTmax runs with no window against the simulator
+   and the test reads what it sent on its own: the ADC read at start-up and the
+   20-second heartbeat. Run with and without the positive-grid board.
+3. **The real program, whole sweeps.** A test hook (`uTmax --test-sweep`) lets a
+   test pick a tube, set a sweep and press Start. The test then checks both
+   sides: what the simulator received (the voltages actually asked for) and what
+   uTmax reported (the currents it measured). Into a 100 kΩ load from 30 to 300 V,
+   uTmax reports the current to within 0.2 %.
+
+**The rule for every fix:** first make the bug happen in a test, then fix it, then
+put the old code back in a scratch copy and check that the test fails. All 46
+tests run on every push, on Linux x64 and arm64; Windows builds too.
+
+**What it has found so far:**
+
+| Found | How | Status |
+|---|---|---|
+| A positive grid voltage on a uTracer6 was sent as **+100 V** (+1 V went out as `FFFF`), and the heater setting was lost | Simulator decoding uTmax's command | **Fixed** |
+| With Dekker's positive-grid board, uTmax **never accepted a reply** (42 characters, not 38): it timed out and reconnected over and over; a current-limit status `91` would have been missed | Simulator with the board fitted, real program | **Fixed** |
+| Sweeps with a hold delay **stopped above 425 V** on a uTracer6; sweeps without a delay had no last-moment check at all | Code comparison with Dean Jenkins' fork; confirmed with a whole sweep | **Fixed**; a 600 V delayed sweep now runs end to end |
+| **Calibration values never initialised**: a key missing from `cal.txt` takes whatever was in memory (seen: an anode factor of −89254), and the `cal.txt` made on a new install has no grid calibration at all | First whole sweep through the test hook | Next to fix |
+| **Crash on the first point of every sweep** when the style sheet can't be found (a division by zero in the plot code) | First whole sweep through the test hook | To fix |
+| uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
+
 ## Done
+
+- **2026-11-18** — **Test hook: whole sweeps in the tests.** `uTmax --test-sweep`
+  runs one sweep from a settings file and writes a report. Four end-to-end sweep
+  tests: a uTracer6 sweep into 100 kΩ (currents within 0.2 %), a delayed sweep to
+  600 V, the same sweep with the positive-grid board, and a sweep above the
+  maximum refused before anything is sent. Its first run found two more bugs
+  (uninitialised calibration; a crash without a style sheet).
 
 - **2026-11-18** — **Fixed: delayed sweeps stopped at 425 V on a uTracer6.**
   Sweeps with a delay refused anything above 425 V, the uTracer3's ceiling. Every
@@ -65,7 +110,7 @@ described in [`CHANGES.md`](../CHANGES.md).
 - [x] Simulator: Dekker's protocol, a tube model, fault injection, command log
 - [x] Simulator: uTracer6 constants checked against Dekker's page
 - [ ] Simulator: Windows support; reservoir droop
-- [ ] Tests that drive a full sweep (needs a test hook in uTmax)
+- [x] **Tests that drive a full sweep (test hook in uTmax)**
 - [ ] Tests that record 3.01's present behaviour
 - [x] **Fix the positive-grid command on the uTracer6**
 - [x] **Handle the positive-grid board's 42-character replies**
@@ -73,6 +118,8 @@ described in [`CHANGES.md`](../CHANGES.md).
 - [ ] Allow a positive grid only when the extension board is fitted
 - [ ] Check every command before sending, treat a bad echo as an error, check replies
 - [x] **Fix the 425 V limit on delayed sweeps**
+- [ ] Initialise every calibration value; write `Vg0`/`Vgm` in a new `cal.txt`
+- [ ] Don't crash when the style sheet is missing
 - [ ] Send End Measurement (discharge) on Stop and at the end of each sweep
 - [ ] Stop rewriting `cal.txt` at every start
 - [ ] Create `~/uTmax_files` if missing; load styles and write logs there

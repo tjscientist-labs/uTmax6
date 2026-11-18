@@ -12,6 +12,11 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.show();
+
+    // uTmax6: "--test-sweep <file>" runs one sweep for automated tests (test_hook.cpp)
+    int t = a.arguments().indexOf("--test-sweep");
+    if (t > 0 && t + 1 < a.arguments().size())
+        w.startTestHook(a.arguments().at(t + 1));
     
     return a.exec();
 }
