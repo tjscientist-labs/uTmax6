@@ -27,6 +27,7 @@
 #include "debug_dialog.h"
 #include "datasavedialog.h"
 #include "grid_word.h"
+#include "reply_format.h"
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -854,10 +855,21 @@ int MainWindow::RxPkt(int rxlen, QByteArray * cmd, QByteArray * response) {
         return RXTIMEOUT;
     }
     //if (RxString.length()>0) qDebug() << "RxPkt: RxString:" << RxString << "length:" << RxString.length() << "cmd:" << ( * cmd);
-    if (RxString.length()==rxlen) {
+    // uTmax6: a result string (commands 10 and 50) is 38 characters, or 42 with
+    // Dekker's positive-grid extension board fitted (status bit 7 set, grid-current
+    // word appended). Read the status byte first to know which, as Dekker's own GUI
+    // does. uTmax 3.01 waited for exactly 38, so with the board every reply timed
+    // out. See reply_format.h.
+    int want = rxlen;
+    if (cmd->length() > 0 && rxlen == cmd->length() + RESULT_LEN
+            && RxString.length() >= cmd->length() + 2) {
+        int st = replyStatus(RxString.at(cmd->length()), RxString.at(cmd->length() + 1));
+        want = cmd->length() + resultLength(st);
+    }
+    if (RxString.length()==want) {
         if ( (cmd->length()==0) || RxString.startsWith(* cmd) ) {
             qDebug() << "RxPkt: reply OK, response:" << RxString;
-            * response = RxString.mid(cmd->length(),rxlen);
+            * response = RxString.mid(cmd->length(),want);
             update_failed=false;
             RxString.clear();
             if (rxlen==18) echoString = TxString;
@@ -1501,7 +1513,8 @@ void MainWindow::Sweep_ADC() {
 
     //check current limit
     ui->MsgLabel->setText("");
-    if (response.mid(0,2)=="11") {
+    // uTmax6: 11H, or 91H with the positive-grid board (3.01 compared with "11" only)
+    if (response.size() >= 2 && statusIsCurrentLimit(replyStatus(response.at(0), response.at(1)))) {
         if (LOGGING) QTextStream(&logFile) << "+Current limit\n";
         ui->MsgLabel->setText("Current Limit!");
         results.ignore|=IGNORE_CURRENT;
@@ -2206,7 +2219,8 @@ void MainWindow::saveADCInfo(QByteArray * adc_pkt)
     adc_data.Gain_a = adc_pkt->mid(34,2).toInt(&ok,16);
     adc_data.Gain_s = adc_pkt->mid(36,2).toInt(&ok,16);
     //fw reports silly values on current limit
-    if (adc_pkt->mid(0,2)=="11") {
+    // uTmax6: 11H, or 91H with the positive-grid board (3.01 compared with "11" only)
+    if (adc_pkt->size() >= 2 && statusIsCurrentLimit(replyStatus(adc_pkt->at(0), adc_pkt->at(1)))) {
         adc_data.Ia=0;
         adc_data.Is=0;
     }

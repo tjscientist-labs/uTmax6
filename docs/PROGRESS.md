@@ -8,6 +8,13 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ## Done
 
+- **2026-11-18** — **Fixed: uTmax works with the positive-grid extension board.**
+  With Dekker's board fitted, the uTracer6 answers with 42 characters instead of
+  38. uTmax 3.01 waited for 38, so it never accepted an answer and kept
+  reconnecting. It now reads the status byte first, as Dekker's own program does,
+  and also recognises a current limit with the board fitted (`91`). Tested end to
+  end against the simulator with and without the board. The grid current is
+  received but not shown yet.
 - **2026-11-18** — **Fixed: positive grid on a uTracer6.** A positive grid
   voltage now goes out as Dekker specifies (+1 V is `8148`, not `FFFF` = +100 V),
   and the heater setting is no longer lost. Tested against the simulator's
@@ -56,7 +63,8 @@ described in [`CHANGES.md`](../CHANGES.md).
 - [ ] Tests that drive a full sweep (needs a test hook in uTmax)
 - [ ] Tests that record 3.01's present behaviour
 - [x] **Fix the positive-grid command on the uTracer6**
-- [ ] Handle the positive-grid board's 42-character replies
+- [x] **Handle the positive-grid board's 42-character replies**
+- [ ] Show the grid current from the extension board
 - [ ] Allow a positive grid only when the extension board is fitted
 - [ ] Check every command before sending, treat a bad echo as an error, check replies
 - [ ] Fix the 425 V limit on delayed sweeps

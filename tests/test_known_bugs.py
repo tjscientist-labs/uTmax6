@@ -7,6 +7,10 @@ Open: none recorded as a test yet. The list of known problems is in
 docs/PLAN.md (stage 4) and docs/DEVELOPER.md (section 11).
 
 Fixed:
+- 2026-11-18  Positive-grid board's 42-character replies never accepted (uTmax
+              timed out and reconnected); status 91 not seen as a current limit.
+              Now tests/test_reply_format.py and UTmaxWithPositiveGridBoard in
+              tests/test_utmax_smoke.py.
 - 2026-11-18  Positive grid on a uTracer6 sent as FFFF (+100 V), heater word lost.
               Now tests/test_grid_word.py; 3.01 reproduced in
               tests/repro/positive_grid_word.cpp.

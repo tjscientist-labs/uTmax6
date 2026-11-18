@@ -8,6 +8,21 @@ where the fix comes from his fork.
 
 ## 2026-11-18
 
+- **Fixed: 42-character replies from the positive-grid extension board.** With
+  Dekker's extension board fitted, a uTracer6 sets bit 7 of the status byte and
+  appends a four-character grid-current word, so its replies are 42 characters
+  (Dekker, uTracer6 log, section 14). uTmax 3.01 waited for exactly 38, so it
+  never accepted a reply: it timed out, closed the port, reopened it and tried
+  again (three times in 26 seconds against the simulator), and never reached
+  idle. `RxPkt()` in `src/mainwindow.cpp` now reads the status byte first and
+  waits for 38 or 42 characters accordingly, as Dekker's own GUI does. The two
+  current-limit checks (`Sweep_adc()` and `saveADCInfo()`) compared the status
+  with the text "11", which would have missed `91` (a current limit with the
+  board fitted); they now mask bit 7. The rules are in the new
+  `src/reply_format.h`. The grid-current word is received but not yet shown;
+  that comes with the extension-board option. The uTracer3 and a uTracer6
+  without the board behave exactly as before. Tests: `tests/test_reply_format.py`
+  and `UTmaxWithPositiveGridBoard` in `tests/test_utmax_smoke.py`.
 - **Fixed: positive grid voltage on a uTracer6.** uTmax 3.01 sent a positive
   grid voltage as a negative number; it was printed as eight hex digits and the
   command was cut off, so +1 V reached the uTracer6 as grid word `FFFF` (+100 V)

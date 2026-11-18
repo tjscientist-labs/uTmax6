@@ -62,10 +62,12 @@ Each with its own test. The list so far, most serious first:
   accepts grid voltages up to +VgMax whether or not Dekker's positive-grid board
   is fitted. Add an option for the board (the uTracer6 also reports it: status
   bit 7) and refuse positive grid voltages without it.
-- **Positive-grid extension board: replies are 42 characters** (status bit 7
-  set, plus a grid-current word), but uTmax 3.01 waits for exactly 38, so it
-  probably cannot complete a measurement with the board fitted. To be confirmed
-  with the simulator (`--grid-board`) once a test can drive a sweep.
+- ~~**Positive-grid extension board: replies are 42 characters**~~ **fixed
+  2026-11-18.** uTmax 3.01 waited for exactly 38, so with the board fitted it
+  never accepted a reply (confirmed end to end with the simulator's
+  `--grid-board`: three re-reads in 26 seconds, never idle), and its
+  current-limit test missed status `91`. `RxPkt()` now reads the status byte
+  first (`src/reply_format.h`). Still to do: show the grid-current word.
 - **No checking of what goes on the wire.** Dekker's protocol has no checksum or
   CRC; its only check is the character echo, which uTmax compares but only
   after the uTracer has already acted, and replies are not checked at all (a bad

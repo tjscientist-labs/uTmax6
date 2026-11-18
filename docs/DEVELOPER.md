@@ -124,9 +124,12 @@ within 250 ms.
 incoming characters to `RxString`, drops spaces, CR and LF, and skips anything from
 `<` to the end of the line (comments from Nick Barton's firmware). `RxPkt()` (line
 844) waits until `RxString` is exactly `rxLen` characters (echo + reply), checks
-that it starts with the command sent, and hands back the reply. If more characters
-arrive than expected, the length never matches and the request times out (this
-matters for the 42-character uTracer6 replies, section 11).
+that it starts with the command sent, and hands back the reply. For a result
+string (commands `10` and `50`) it first reads the status byte: with bit 7 set
+(positive-grid board fitted) it waits for 42 characters instead of 38
+(`resultLength()` in `src/reply_format.h`; uTmax 3.01 always waited for 38). If
+more characters arrive than expected, the length never matches and the request
+times out.
 
 ## 4. The uTracer protocol
 
@@ -159,8 +162,10 @@ after the amplifier, Ia before it, Is after, Is before, Va, Vs, supply, negative
 rail, then the anode and screen gain bytes actually used. Currents are **sums** of
 the averaged samples; the host divides.
 
-**uTracer6 with the positive-grid board:** status has bit 7 set (`90`, probably
-`91` on a trip) and a 4-character grid-current word follows: 42 characters.
+**uTracer6 with the positive-grid board:** status has bit 7 set (`90`, `91` on a
+current limit) and a 4-character grid-current word (ADC input AN12) is appended:
+42 characters. The other fields keep their places. Test the status with
+`statusIsCurrentLimit()` (`src/reply_format.h`), never by comparing with `"11"`.
 
 **Nick Barton's firmware chip** (uTracer3 only) adds two-character commands
 `51`–`59` (calibration on the chip, version, debug, firmware update). uTmax sends
@@ -231,7 +236,8 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_simulator.py` | Conversions against Dekker's formulas; loads; the protocol over a real pseudo-terminal; the positive-grid board; fault injection. |
 | `tests/test_known_bugs.py` | Known bugs, recorded as they are; a fixed bug's test moves to a test of the correct behaviour. |
 | `tests/test_grid_word.py` + `tests/cpp/test_grid_word.cpp` | The uTracer6 grid word: C++ checks of `src/grid_word.h` against Dekker's formula, then its commands decoded by the simulator. Needs g++. |
-| `tests/test_utmax_smoke.py` | Runs the built program with no window against the simulator and checks what it sends. |
+| `tests/test_reply_format.py` + `tests/cpp/test_reply_format.cpp` | Result-string length and status byte: C++ checks of `src/reply_format.h` (38 or 42 characters; current limit `11` or `91`), and that the simulator's replies agree. |
+| `tests/test_utmax_smoke.py` | Runs the built program with no window against the simulator and checks what it sends, on a uTracer6 with and without the positive-grid board. |
 
 The GitHub workflow runs all of them on Linux x64 and arm64 after building.
 
@@ -270,7 +276,9 @@ where they exist. The most serious:
 - ~~**Positive grid on a uTracer6**~~ **fixed 2026-11-18**: `GetVg()` now calls
   `utracer6GridWord()` (`src/grid_word.h`). 3.01's behaviour is kept in
   `tests/repro/positive_grid_word.cpp`.
-- **42-character replies** with the positive-grid board: `RxPkt()` waits for 38.
+- ~~**42-character replies** with the positive-grid board~~ **fixed 2026-11-18**:
+  `RxPkt()` reads the status byte first (`src/reply_format.h`). The grid-current
+  word is received but not yet shown.
 - **425 V cap on delayed sweeps** (`Sweep_Set()` and `Hold()`, around lines 1425
   and 1462).
 - **Discharge waits up to 20 s** after a sweep (section 3.3).

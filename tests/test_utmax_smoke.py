@@ -9,8 +9,14 @@ Needs a built uTmax. Run from the repository root with:
     UTMAX_BIN=build/release/uTmax python3 -m unittest tests.test_utmax_smoke -v
 
 uTmax runs with Qt's "offscreen" platform (no window) and a temporary home folder,
-so your own ~/uTmax_files is never touched. The test takes about 30 seconds,
+so your own ~/uTmax_files is never touched. Each case takes about 30 seconds,
 because uTmax's idle heartbeat comes every 20 seconds.
+
+The same checks run twice: on a plain uTracer6, and on one with Dekker's
+positive-grid extension board, whose replies are 42 characters instead of 38
+(status bit 7 set, grid-current word appended). uTmax 3.01 waited for exactly
+38, timed out, and reconnected over and over; uTmax6 reads the status byte
+first, as Dekker's own GUI does.
 """
 
 import json
@@ -28,6 +34,7 @@ UTMAX = os.environ.get("UTMAX_BIN")
 
 @unittest.skipUnless(UTMAX and os.path.exists(UTMAX), "set UTMAX_BIN to a built uTmax")
 class UTmaxTalksToSimulator(unittest.TestCase):
+    SIM_ARGS = []           # extra simulator options for this case
 
     @classmethod
     def setUpClass(cls):
@@ -47,7 +54,7 @@ class UTmaxTalksToSimulator(unittest.TestCase):
         ready = os.path.join(cls.tmp, "ready")
         cls.sim = subprocess.Popen(
             [sys.executable, os.path.join(ROOT, "tools", "utracer_sim", "utracer_sim.py"),
-             "--link", cls.port, "--log", cls.log, "--ready-file", ready, "--load", "r:10k"],
+             "--link", cls.port, "--log", cls.log, "--ready-file", ready, "--load", "r:10k"] + cls.SIM_ARGS,
             stdout=subprocess.DEVNULL)
         for _ in range(100):
             if os.path.exists(ready):
@@ -80,6 +87,17 @@ class UTmaxTalksToSimulator(unittest.TestCase):
 
     def test_sends_no_unknown_commands(self):
         self.assertEqual([c for c in self.commands if c["cmd"] == "unknown"], [])
+
+    def test_accepts_the_first_reply_without_reconnecting(self):
+        # A reply uTmax can't read makes it time out, close the port, reopen it
+        # and read the ADC again. One 50 in 26 seconds means the reply was taken.
+        reads = [c for c in self.commands if c["cmd"] == "ping_read_adc"]
+        self.assertEqual(len(reads), 1, f"uTmax re-read the ADC {len(reads)} times")
+
+
+class UTmaxWithPositiveGridBoard(UTmaxTalksToSimulator):
+    """The same checks with Dekker's positive-grid board fitted (42-character replies)."""
+    SIM_ARGS = ["--grid-board"]
 
 
 if __name__ == "__main__":
