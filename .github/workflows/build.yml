@@ -1,7 +1,8 @@
 # Builds uTmax6 on every push and pull request:
 #   Linux x64, Linux arm64 (the same CPU family as a Raspberry Pi 5) and Windows x64.
-# A green run means the code compiles and links on all three. It does not test
-# the program against a uTracer; see tests/ for that.
+# On Linux it then runs the tests in tests/: the simulator's own tests, and
+# uTmax started without a window against the software uTracer. A green run
+# does not mean the program has been tested on a real uTracer.
 name: build
 
 on:
@@ -21,12 +22,16 @@ jobs:
       - name: Install Qt 6, Qt SerialPort and GSL
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools libqt6serialport6-dev libgsl-dev build-essential
+          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools libqt6serialport6-dev libgsl-dev build-essential qt6-qpa-plugins
       - name: Build
         run: |
           mkdir build && cd build
           qmake6 ../src/uTmax.pro CONFIG+=release
           make -j"$(nproc)"
+      - name: Simulator tests
+        run: python3 -m unittest discover -s tests -v
+        env:
+          UTMAX_BIN: build/release/uTmax
       - uses: actions/upload-artifact@v4
         with:
           name: uTmax6-${{ matrix.runner }}
@@ -44,7 +49,7 @@ jobs:
           msystem: UCRT64
           update: true
           install: >-
-            make
+            mingw-w64-ucrt-x86_64-make
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-qt6-base
             mingw-w64-ucrt-x86_64-qt6-serialport

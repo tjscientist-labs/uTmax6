@@ -1,0 +1,21 @@
+{
+  "name": "utracer6",
+  "notes": "Ronald Dekker's uTracer6 (1000 V / 1 A). FIRST DRAFT: several values are taken from uTmax 3.01, which was written without the hardware, and some sources disagree. Entries marked TO VERIFY must be checked against Dekker's uTracer6 schematic before the simulator can be used to judge uTmax's uTracer6 conversions.",
+  "constants": {
+    "hv_divider_top_ohm":        {"value": 1000000, "source": "uTmax 3.01 Update_adc_scales() uTracer6 branch and changelog 2.21k ('added 1meg resistor for ut6 voltage divider'). TO VERIFY"},
+    "hv_divider_bottom_ohm":     {"value": 4700,    "source": "UNVERIFIED placeholder (gives about 1069 V full scale). In uTmax this is the RaVal calibration entry. TO VERIFY"},
+    "anode_sense_ohm":           {"value": 4.7,     "source": "uTracer6 notes (Dekker construction log): 4.7 ohm default sense resistors. TO VERIFY"},
+    "screen_sense_ohm":          {"value": 4.7,     "source": "as anode. TO VERIFY"},
+    "supply_divider_top_ohm":    {"value": 10000,   "source": "uTmax 3.01 Update_adc_scales() uTracer6 branch; changelog 2.21k '10k/1k divider for positive supply'. TO VERIFY"},
+    "supply_divider_bottom_ohm": {"value": 1000,    "source": "as above. TO VERIFY"},
+    "neg_divider_top_ohm":       {"value": 47000,   "source": "uTmax 3.01 code uses (47+4.7)/4.7, but its changelog 2.21k says '200k/2k divider for negative rail'. CONFLICT, TO VERIFY"},
+    "neg_divider_bottom_ohm":    {"value": 4700,    "source": "as above. CONFLICT, TO VERIFY"},
+    "supply_volts":              {"value": 19.5,    "source": "uTracer6 runs from a 19.5 V laptop supply (Dekker)."},
+    "neg_rail_volts":            {"value": -15.0,   "source": "uTmax 3.01 changelog 2.21m 'Changed Vneg to -15V for uTracer 6'. Our notes say the grid amplifier runs from a -85 V rail; which rail the ADC sees is TO VERIFY"},
+    "grid_dac_bits":             {"value": 16,      "source": "uTracer6 grid DAC is a DAC8562 (16-bit); uTmax 3.01 GetVg() uses a signed 16-bit word"},
+    "grid_full_scale_volts":     {"value": 100,     "source": "uTracer6 grid range 0 to -100 V (Dekker). uTmax's VgMax calibration entry must match. TO VERIFY"},
+    "cathode_diode_drop_volts":  {"value": 0.0,     "source": "uTmax adds a 0.5 V diode drop for the uTracer3; whether the uTracer6 has it is TO VERIFY"},
+    "hv_switch_drop_volts":      {"value": 0.0,     "source": "uTracer6 uses a MOSFET switch (FQD2N100), not the uTracer3's darlington. TO VERIFY"},
+    "max_hv_volts":              {"value": 1000,    "source": "Dekker: 0-1000 V"}
+  }
+}

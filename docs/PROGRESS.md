@@ -8,6 +8,12 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ## Done
 
+- **2026-11-18** — **Software uTracer** (`tools/utracer_sim/`): echoes and answers
+  Dekker's protocol, models resistor, diode and 12AX7 loads, injects faults, logs
+  every command. Its formulas are checked against Dekker's published figures.
+- **2026-11-18** — **First end-to-end test**: the real uTmax, run without a window,
+  talks to the simulator; its start-up and idle behaviour is recorded.
+- **2026-11-18** — Automatic builds pass on Linux x64 and Linux arm64.
 - **2026-11-18** — Repository created with Nick Barton's uTmax 3.01 imported
   byte-for-byte as the first commit.
 - **2026-11-18** — Project file links GSL from the system on every platform;
@@ -22,14 +28,17 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ## In progress
 
-- The software uTracer (simulator).
+- Checking the simulator's uTracer6 constants against Dekker's schematic.
+- Windows build in CI (first attempt lacked a make tool; fixed, re-running).
 - Design of a 1000 V Matrix relay board to replace Nick Barton's.
 - Dummy-load designs for the first hardware checks.
 
 ## Planned
 
 ### Software
-- [ ] Simulator: Dekker's protocol, a tube model, fault injection, command log
+- [x] Simulator: Dekker's protocol, a tube model, fault injection, command log
+- [ ] Simulator: verified uTracer6 constants; Windows support; reservoir droop
+- [ ] Tests that drive a full sweep (needs a test hook in uTmax)
 - [ ] Tests that record 3.01's present behaviour
 - [ ] Fix the 425 V limit on delayed sweeps
 - [ ] Send End Measurement (discharge) on Stop and at the end of each sweep
@@ -58,7 +67,7 @@ described in [`CHANGES.md`](../CHANGES.md).
 - [ ] Reference tube against Dekker's program
 
 ### Documentation
-- [ ] Simulator guide
+- [x] Simulator guide (`tools/utracer_sim/README.md`)
 - [ ] Dummy-load build guide
 - [ ] Matrix board build guide
 - [ ] User manual

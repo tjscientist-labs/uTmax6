@@ -1,0 +1,21 @@
+{
+  "name": "utracer3",
+  "notes": "Ronald Dekker's uTracer3 (400 V class). Values from Dekker's protocol description (dos4ever.com uTracerlog/tubetester2.html §15) where it gives them, otherwise from uTmax 3.01's defaults. Each entry says which.",
+  "constants": {
+    "hv_divider_top_ohm":        {"value": 482000, "source": "Dekker §15: R2 = 482k, V_HV = 0.35 n (358 V at n = 1023). uTmax 3.01 assumes 470k (rvtop) with RaVal 6800, which reads about 2.4 % low until calibrated."},
+    "hv_divider_bottom_ohm":     {"value": 6810,   "source": "Dekker §15: R1 = 6k81"},
+    "anode_sense_ohm":           {"value": 18,     "source": "Dekker §15: 'a current sense resistor of 18 ohm'"},
+    "screen_sense_ohm":          {"value": 18,     "source": "Dekker §15"},
+    "supply_divider_top_ohm":    {"value": 6800,   "source": "uTmax 3.01 Update_adc_scales(): (1.8+6.8)/1.8"},
+    "supply_divider_bottom_ohm": {"value": 1800,   "source": "uTmax 3.01 Update_adc_scales()"},
+    "neg_divider_top_ohm":       {"value": 47000,  "source": "uTmax 3.01 Update_adc_scales(): (47+2)/2"},
+    "neg_divider_bottom_ohm":    {"value": 2000,   "source": "uTmax 3.01 Update_adc_scales()"},
+    "supply_volts":              {"value": 18.5,   "source": "Dekker §15: cathode referenced to the 18.5 V supply"},
+    "neg_rail_volts":            {"value": -40.0,  "source": "UNVERIFIED placeholder. Dekker §15: negative boost converter measured via R1 = 2k / R2 = 47k to +5 V, V = 0.12 n - 117.5"},
+    "grid_dac_bits":             {"value": 12,     "source": "uTmax 3.01 GetVg(): 12-bit word for Nick Barton's firmware 2.03+. Dekker's original firmware: 10-bit PWM, V = -50/1023 n (§15)."},
+    "grid_full_scale_volts":     {"value": 50,     "source": "uTmax 3.01 default cal.txt VgMax=50"},
+    "cathode_diode_drop_volts":  {"value": 0.5,    "source": "uTmax 3.01 mainwindow.cpp: #define Vdi 0.5 (drop across D11)"},
+    "hv_switch_drop_volts":      {"value": 0.75,   "source": "uTmax 3.01 mainwindow.cpp: #define Vdar 0.75 (darlington)"},
+    "max_hv_volts":              {"value": 400,    "source": "uTracer3 class"}
+  }
+}

@@ -35,7 +35,7 @@ The uTracer's USB-serial adapter appears as `/dev/ttyUSB0`.
 2. Install the tools and libraries:
 
    ```sh
-   pacman -S make mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-qt6-base \
+   pacman -S mingw-w64-ucrt-x86_64-make mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-qt6-base \
              mingw-w64-ucrt-x86_64-qt6-serialport mingw-w64-ucrt-x86_64-gsl
    ```
 
