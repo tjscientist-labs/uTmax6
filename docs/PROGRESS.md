@@ -8,6 +8,7 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ## Done
 
+- **2026-11-18** — **Developer manual** (`docs/DEVELOPER.md`): structure, state machine, a sweep step by step, protocol, conversions, files, simulator, tests, how to make a change.
 - **2026-11-18** — **Found: a positive grid on a uTracer6 sends +100 V.** uTmax
   3.01 formats a positive grid voltage as a negative number; the command is cut
   short and the uTracer6 would apply +100 V instead of, say, +1 V. Reproduced
@@ -80,6 +81,7 @@ described in [`CHANGES.md`](../CHANGES.md).
 
 ### Documentation
 - [x] Simulator guide (`tools/utracer_sim/README.md`)
+- [x] Developer manual, first edition (`docs/DEVELOPER.md`); grows with stage 5
 - [ ] Dummy-load build guide
 - [ ] Matrix board build guide
 - [ ] User manual

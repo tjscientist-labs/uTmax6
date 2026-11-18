@@ -62,6 +62,11 @@ Every push is built automatically on Linux x64, Linux arm64 and Windows
 
 ## Documentation
 
+- **[Developer manual](docs/DEVELOPER.md)**: how uTmax works inside, the uTracer
+  protocol, conversions, files, the simulator, tests, and how to make a change.
+- **[Software uTracer](tools/utracer_sim/README.md)**: the simulator's guide.
+- **User manual**: to be written (plan stage 8).
+
 The write-up of the whole project, including the simulator, the dummy loads and
 the relay board, is published at
 **[test-equipment.fubsypoly.com/utmax6/](https://test-equipment.fubsypoly.com/utmax6/)**.
