@@ -101,7 +101,7 @@ Each with its own test. The list so far, most serious first:
   characters and every field inside its range for the uTracer model (**done
   2026-11-20**, `src/command_check.h`; it also stops a heater word beyond 10 bits
   when the heater setting is above the supply); (2) an echo
-  that doesn't match stops the sweep and discharges; (3) replies are checked for
+  that doesn't match stops the sweep and discharges (**done 2026-11-20**); (3) replies are checked for
   hex, a known status byte, and reservoir voltages close to what was requested.
 - uTracer3 constants used in uTracer6 mode: uTmax adds the uTracer3's 0.5 V
   diode drop and subtracts its 0.75 V darlington drop; Dekker's uTracer6

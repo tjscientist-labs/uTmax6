@@ -228,6 +228,16 @@ class Faults(unittest.TestCase):
         finally:
             sim.close()
 
+    def test_bad_echo_on_n(self):
+        sim = SimulatorProcess("--bad-echo-on", "2")
+        try:
+            self.assertEqual(sim.send("300000000000000000", False), "300000000000000000")
+            self.assertEqual(sim.send("300000000000000000", False), "30000000000000000X")
+            self.assertEqual(sim.send("300000000000000000", False), "300000000000000000")
+            self.assertEqual(sim.log()[1].get("fault"), "bad echo")
+        finally:
+            sim.close()
+
     def test_no_reply_after_n(self):
         sim = SimulatorProcess("--no-reply-after", "1")
         try:

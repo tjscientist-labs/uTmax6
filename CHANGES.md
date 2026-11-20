@@ -8,6 +8,13 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **New: a wrong echo stops the sweep and discharges.** In `RxData()`
+  (`src/mainwindow.cpp`) an echo that doesn't match the command (`RXINVALID`)
+  made 3.01 go idle with the reservoirs as they were. uTmax6 sends End
+  Measurement (`30`) at once and shows the reason; if the `30` is echoed wrongly
+  too, it goes idle as before. The simulator gained `--bad-echo-on N`
+  (`tools/utracer_sim/utracer_sim.py`, its README; a test in
+  `tests/test_simulator.py`). Test: `tests/test_bad_echo.py`.
 - **New: every command is checked before it is sent.** Dekker's protocol has no
   checksum and 3.01 sent whatever it had built. New `src/command_check.h`:
   `checkCommand()` checks each of Dekker's commands (`00`-`50`) for form and for

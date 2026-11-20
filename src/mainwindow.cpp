@@ -947,9 +947,32 @@ void MainWindow::RxData()
     //Check for invalid rsponse
     if (RxCode==RXINVALID)
     {
-        ui->statusBar->showMessage(tr("Unexpected response from Tracer; power cycle and restart"));
-        RecallCtlState();
+        // uTmax6: the echo did not match the command, so the uTracer may have acted
+        // on something else. Stop and send End Measurement (30) to discharge the
+        // reservoirs and set the grid to 0 V; 3.01 went idle with them as they were.
+        // If the 30 itself comes back wrong, go idle as before (no retry loop).
+        const QString why = tr("Unexpected response from Tracer (the echo did not match "
+                               "the command). Sweep stopped");
         response.clear();
+        stop = false;
+        startSweep = 0;
+        heat = 0;
+        ui->HeaterProg->setValue(0);
+        if (status != discharge) {
+            afterDischargeMessage = why + tr(", reservoirs discharged. If it happens again, power cycle the uTracer.");
+            ui->statusBar->showMessage(afterDischargeMessage);
+            cmd = TxString = "300000000000000000";
+            rxLen = TxString.length();
+            status = discharge;
+            timeout = PING_TIMEOUT;
+            timer_on = true;
+            portInUse->write(TxString);
+            return;
+        }
+        ui->statusBar->showMessage(why + tr("; the discharge command was not echoed correctly either. "
+                                            "Power cycle the uTracer and restart."));
+        afterDischargeMessage.clear();
+        RecallCtlState();
         cmd.clear();
         rxLen = 0;
         timer_on= false;

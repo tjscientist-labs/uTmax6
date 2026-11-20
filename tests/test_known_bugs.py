@@ -7,6 +7,8 @@ Open: none recorded as a test yet. The list of known problems is in
 docs/PLAN.md (stage 4) and docs/DEVELOPER.md (section 11).
 
 Fixed:
+- 2026-11-20  A wrong echo left the reservoirs charged (idle, no 30). Now
+              tests/test_bad_echo.py.
 - 2026-11-20  Commands sent unchecked; a heater set above the supply sent a word
               beyond 10 bits. Now tests/test_command_check.py.
 - 2026-11-20  data.csv header wrote gm1Del twice. Now HeaderWrittenCorrectly in

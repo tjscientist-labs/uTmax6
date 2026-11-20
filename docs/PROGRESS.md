@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 107
+put the old code back in a scratch copy and check that the test fails. All 113
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -53,6 +53,11 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 ## Done
 
+- **2026-11-20** — **A wrong echo now discharges.** The uTracer echoes every
+  character, and that echo is the protocol's only check, but it arrives after
+  the uTracer has already acted. When it didn't match, uTmax used to stop and
+  leave the reservoirs charged. Now it sends the discharge command at once and
+  says so. The simulator can now corrupt an echo on purpose to test this.
 - **2026-11-20** — **Every command is checked before it is sent.** Dekker's
   protocol has no checksum, and uTmax used to send whatever it had built. Now
   each command is checked just before it goes out: its form, and every value
@@ -183,7 +188,7 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [ ] Show the grid current from the extension board
 - [ ] Allow a positive grid only when the extension board is fitted
 - [x] **Check every command before sending**
-- [ ] Treat a bad echo as an error and discharge
+- [x] **Treat a bad echo as an error and discharge**
 - [ ] Check replies (hex, status byte)
 - [x] **Fix the 425 V limit on delayed sweeps**
 - [x] **Initialise every calibration value; write `Vg0`/`Vgm` in a new `cal.txt`**

@@ -57,6 +57,7 @@ Stop it with Ctrl-C.
 | `--no-reply-after N` | Fault: stop replying after N commands (tests a lost connection). |
 | `--garble-every N` | Fault: corrupt every Nth reply. |
 | `--trip` | Fault: report a current-limit trip on every measurement. |
+| `--bad-echo-on N` | Fault: the last character of command N is echoed wrongly (an `X`). The simulator still acts on the command and replies, as a uTracer would if the line corrupted the echo on its way back. Logged as `"fault": "bad echo"`. |
 | `--supply-volts V` | The supply (power brick) voltage, instead of the profile's 18.5 V / 19.5 V. For a weak or sagging brick: uTmax scales the heater to the supply it reads. |
 | `--grid-board` | Fit Dekker's positive-grid extension board (uTracer6): status bit 7 set, 42-character replies. Without it, a positive grid word is ignored and logged as a warning. |
 

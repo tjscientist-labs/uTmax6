@@ -101,6 +101,9 @@ class UTracer:
         code = cmd[:2]
         entry = {"t": round(time.time(), 3), "n": self.n_commands, "rx": cmd,
                  "cmd": NAMES.get(code, "unknown")}
+        if getattr(self, "pending_fault", None):
+            entry["fault"] = self.pending_fault
+            self.pending_fault = None
         try:
             words = [int(cmd[i:i + 4], 16) for i in (2, 6, 10, 14)]
         except ValueError:
@@ -269,11 +272,18 @@ def serve(args):
                 time.sleep(0.1)      # host closed the port; keep waiting for it to reopen
                 continue
             for ch in data.decode("ascii", errors="replace"):
-                os.write(master, ch.encode("ascii", errors="replace"))   # echo, as the firmware does
                 if ch in "\r\n ":
+                    os.write(master, ch.encode("ascii", errors="replace"))
                     continue
                 buf += ch
+                out = ch
+                bad_echo = (len(buf) == CMD_LEN and args.bad_echo_on is not None
+                            and sim.n_commands + 1 == args.bad_echo_on)
+                if bad_echo:                 # fault: the last echoed character comes back wrong
+                    out = "X" if ch != "X" else "Y"
+                os.write(master, out.encode("ascii", errors="replace"))   # echo, as the firmware does
                 if len(buf) == CMD_LEN:
+                    sim.pending_fault = "bad echo" if bad_echo else None
                     reply = sim.handle(buf.upper())
                     buf = ""
                     if reply:
@@ -298,6 +308,8 @@ def main(argv=None):
     ap.add_argument("--no-reply-after", type=int, help="fault: stop replying after N commands")
     ap.add_argument("--garble-every", type=int, help="fault: corrupt every Nth reply")
     ap.add_argument("--trip", action="store_true", help="fault: report a current-limit trip on every measurement")
+    ap.add_argument("--bad-echo-on", type=int, metavar="N",
+                    help="fault: echo the last character of command N wrongly (the command still acts)")
     ap.add_argument("--supply-volts", type=float,
                     help="the supply (power brick) voltage, instead of the profile's (fault: a weak supply)")
     ap.add_argument("--grid-board", action="store_true",
