@@ -8,6 +8,20 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **New: every command is checked before it is sent.** Dekker's protocol has no
+  checksum and 3.01 sent whatever it had built. New `src/command_check.h`:
+  `checkCommand()` checks each of Dekker's commands (`00`-`50`) for form and for
+  every field's range on the uTracer model in use, with the anode and screen
+  words against the voltage limit. `sendSer()` in `src/mainwindow.cpp` calls the
+  new `commandAllowed()`; a command that fails is not sent, End Measurement
+  (`30`) is sent instead, and the reason stays in the status bar
+  (`afterDischargeMessage`, `Discharge_Done()`; `src/mainwindow.h`). Nick
+  Barton's own firmware commands are not checked. This also stops a heater
+  setting above the supply voltage, which 3.01 sent as a heater word beyond
+  10 bits (`GetVf()` has no upper clamp). The simulator gained `--supply-volts`
+  (`tools/utracer_sim/utracer_sim.py`, its README) to test that. Tests:
+  `tests/test_command_check.py`, `tests/cpp/test_command_check.cpp`, and a new
+  case in `tests/test_simulator.py`.
 - **Small fixes** (no change to what uTmax sends or measures):
   - The `data.csv` header written by `SaveTubeDataFile()` named the gm2
     tolerance column `gm1Del`, so `gm1Del` appeared twice; now `gm2Del`. From

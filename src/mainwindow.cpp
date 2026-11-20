@@ -33,6 +33,7 @@
 #include "plot_pens.h"
 #include "cal_file.h"
 #include "new_install.h"
+#include "command_check.h"
 #include <QDateTime>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -1650,7 +1651,9 @@ void MainWindow::HeatOff_f() {
 void MainWindow::Discharge_Done() {
     timer_on=false;
     RecallCtlState();
-    ui->statusBar->showMessage(tr("Ready"));
+    // uTmax6: a refused command leaves its reason on screen (commandAllowed())
+    ui->statusBar->showMessage(afterDischargeMessage.isEmpty() ? tr("Ready") : afterDischargeMessage);
+    afterDischargeMessage.clear();
     status=Idle;
     rxLen=0;
 }
@@ -1818,7 +1821,44 @@ void MainWindow::sendSer()
 {
     qDebug() << "sendSer Tx:" << TxString << "TxLen:" << TxString.length() << "cmd:" << cmd << "rxLen:" << rxLen;
     //RxString.clear();
+    if (!commandAllowed()) return;
     portInUse->write(TxString);
+}
+
+// uTmax6: the last check on every Dekker command before it is sent
+// (command_check.h). A command that fails is not sent: End Measurement (30) goes
+// instead, to discharge the reservoirs and set the grid to 0 V, the sweep stops,
+// and the reason stays in the status bar. 3.01 sent whatever it had built.
+bool MainWindow::commandAllowed()
+{
+    const std::string c = TxString.toStdString();
+    if (!isDekkerCommand(c)) return true;           // Nick Barton's firmware commands
+    CommandLimits lim;
+    const float vmax = hvLimit(options.uTracer6, calData.VaMax);
+    lim.maxAnodeWord = GetVa(vmax);
+    lim.maxScreenWord = GetVs(vmax);
+    lim.uTracer6 = options.uTracer6;
+    lim.grid12bit = !options.uTracer6 && calData.Firmware >= 203;
+    lim.extHeater = options.ExtHtr;
+    const CmdProblem p = checkCommand(c, lim);
+    if (p == CmdProblem::None) return true;
+
+    const QString why = tr("Command refused, %1: %2. Sweep stopped, reservoirs discharged.")
+                            .arg(problemText(p), QString::fromLatin1(TxString));
+    qWarning() << why;
+    stop = false;
+    startSweep = 0;
+    ui->HeaterProg->setValue(0);
+    heat = 0;
+    afterDischargeMessage = why;
+    ui->statusBar->showMessage(why);
+    cmd = TxString = "300000000000000000";
+    rxLen = TxString.length();
+    status = discharge;
+    timeout = PING_TIMEOUT;
+    timer_on = true;
+    portInUse->write(TxString);
+    return false;
 }
 
 /*int MainWindow::DWait(float v) {

@@ -55,6 +55,7 @@ HEADERS  += mainwindow.h \
     cal_file.h \
     app_paths.h \
     new_install.h \
+    command_check.h \
     cal_dialog.h \
     cal_wizard.h \
     debug_dialog.h \

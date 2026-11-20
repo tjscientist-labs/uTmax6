@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 101
+put the old code back in a scratch copy and check that the test fails. All 107
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -48,10 +48,19 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 | On a **new machine** uTmax never created its `~/uTmax_files` folder: it asked for the tube library in a file dialog and never saved its settings; its style sheet and logs used whatever folder it was started from | Dean Jenkins' fork; confirmed with a fresh home folder (3.01 sits in the dialog) | **Fixed** |
 | A new install's settings named the serial port **`COM1` even on Linux** and a **style sheet that doesn't exist**; the themes' images only showed when uTmax was started from one particular folder | Reading the code, then a fresh home folder | **Fixed** |
 | A tube library with **no usable tube** (empty, header only, damaged) **crashed uTmax at start-up**, every time, until the file was fixed by hand | Checking an unchecked file read in the small-fixes list | **Fixed** |
+| A **heater setting above the supply voltage** went out as a heater word beyond its 10-bit range (an 18 V heater on a weak 15 V supply: `5C1`) | Writing the command checker; the simulator's new `--supply-volts` | **Stopped** by the new command check |
 | uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
 
 ## Done
 
+- **2026-11-20** — **Every command is checked before it is sent.** Dekker's
+  protocol has no checksum, and uTmax used to send whatever it had built. Now
+  each command is checked just before it goes out: its form, and every value
+  against what the uTracer model accepts, with the anode and screen against the
+  voltage limit. A command that fails is not sent; the reservoirs are
+  discharged instead and the reason is shown. The check would have caught
+  3.01's +100 V grid bug, and it found one more problem: a heater set above the
+  supply voltage sends a value the uTracer can't take.
 - **2026-11-20** — **Small fixes.** The tube library's header line no longer
   names one column twice (from Dean Jenkins' fork). The idle heartbeat now says
   "Idle: discharge sent" instead of "Send Ping". Five pieces of code that read
@@ -173,7 +182,9 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [x] **Handle the positive-grid board's 42-character replies**
 - [ ] Show the grid current from the extension board
 - [ ] Allow a positive grid only when the extension board is fitted
-- [ ] Check every command before sending, treat a bad echo as an error, check replies
+- [x] **Check every command before sending**
+- [ ] Treat a bad echo as an error and discharge
+- [ ] Check replies (hex, status byte)
 - [x] **Fix the 425 V limit on delayed sweeps**
 - [x] **Initialise every calibration value; write `Vg0`/`Vgm` in a new `cal.txt`**
 - [x] **Don't crash when the style sheet is missing**

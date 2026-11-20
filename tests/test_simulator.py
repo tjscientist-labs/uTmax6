@@ -217,6 +217,17 @@ class Faults(unittest.TestCase):
         finally:
             sim.close()
 
+    def test_supply_volts_changes_the_supply_reading(self):
+        p = Profile.find("utracer6")
+        p.supply_v = 15.0
+        want = f"{p.vsu_code():04X}"
+        sim = SimulatorProcess("--supply-volts", "15")
+        try:
+            out = sim.send("500000000000000000", expect_reply=True)
+            self.assertEqual(out[18 + 26:18 + 30], want)      # Vsupply, the 7th field
+        finally:
+            sim.close()
+
     def test_no_reply_after_n(self):
         sim = SimulatorProcess("--no-reply-after", "1")
         try:

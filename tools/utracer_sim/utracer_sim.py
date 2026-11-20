@@ -236,6 +236,8 @@ class UTracer:
 
 def serve(args):
     profile = Profile.find(args.profile)
+    if args.supply_volts is not None:
+        profile.supply_v = args.supply_volts      # a weak or sagging power brick
     load = loads.from_spec(args.load)
     faults = {"no_reply_after": args.no_reply_after, "garble_every": args.garble_every,
               "trip": args.trip}
@@ -296,6 +298,8 @@ def main(argv=None):
     ap.add_argument("--no-reply-after", type=int, help="fault: stop replying after N commands")
     ap.add_argument("--garble-every", type=int, help="fault: corrupt every Nth reply")
     ap.add_argument("--trip", action="store_true", help="fault: report a current-limit trip on every measurement")
+    ap.add_argument("--supply-volts", type=float,
+                    help="the supply (power brick) voltage, instead of the profile's (fault: a weak supply)")
     ap.add_argument("--grid-board", action="store_true",
                     help="fit Dekker's positive-grid extension board (42-character replies)")
     ap.add_argument("--ready-file", help="write the port path here once listening (for test scripts)")

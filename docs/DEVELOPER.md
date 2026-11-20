@@ -124,7 +124,20 @@ within 250 ms.
    backstop all leave through `End()`, so they discharge too. (3.01 left the `30`
    to the next 20-second idle heartbeat.)
 
-### 3.4 Receiving
+### 3.4 Sending
+
+Every command goes through `sendSer()`. In uTmax6 it first calls
+`commandAllowed()`, which runs `checkCommand()` (`src/command_check.h`) on each of
+Dekker's six commands: 18 upper-case hex characters, a known code, settings
+bytes from uTmax's own tables, anode and screen no higher than the words for the
+voltage limit (`GetVa(hvLimit(...))`), grid within the uTracer3's 10- or 12-bit
+format, heater within 10 bits (or `E000H` plus 10 bits with an external heater),
+unused words zero. Nick Barton's firmware commands (`51`, `52`, `54`, `55`, `57`,
+`59`, boot-loader bytes) are not checked. A command that fails is not sent: `30`
+is sent instead, the state goes to `discharge`, and the reason stays on the
+status bar (`afterDischargeMessage`).
+
+### 3.5 Receiving
 
 `readData()` (line 816) is connected to the port's `readyRead` signal. It appends
 incoming characters to `RxString`, drops spaces, CR and LF, and skips anything from
@@ -271,6 +284,7 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_sweeps.py` (+ helper `tests/utmax_run.py`) | Whole sweeps of the real program against the simulator through the test hook: a uTracer6 sweep into 100 kΩ (voltages received, currents reported, heater on then off), a delayed sweep to 600 V (the 425 V fix), the same sweep with the positive-grid board, and a sweep above `VaMax` refused with an entry error. |
 | `tests/test_calibration_defaults.py` | Through the test hook: a `cal.txt` with no calibration factors, and one with unreadable ones, still sweep correctly (anode and grid voltages, currents) and are written back with the defaults; a new install's `cal.txt` has `Vg0`/`Vgm` and none of the obsolete grid keys. |
 | `tests/test_plot_pens.py` | Through the test hook: a three-curve sweep with the style sheet missing runs to the end without crashing (3.01: SIGFPE on the first point), and the same sweep with the style sheet. |
+| `tests/test_command_check.py` | The command rules on their own (`tests/cpp/test_command_check.cpp`: real commands, form, limits, grid formats, heater, settings, 3.01's +100 V command), and through the test hook an 18 V heater on a 15 V supply (`--supply-volts`): nothing out of range is sent, the reason is shown, `30` follows. |
 | `tests/test_tube_library.py` | Through the test hook: a tube library that is empty, header-only or has only damaged rows no longer crashes uTmax at start-up (3.01: `std::out_of_range`, exit −6); the file is kept, the built-in library installed, a message shown, and a 12AX7 sweep runs. `run_sweep(data_csv=...)`. The header written back on exit names `gm1Del` and `gm2Del` once each. |
 | `tests/test_new_install.py` | Through the test hook, on a fresh home folder: the new `cal.txt` names a Linux USB serial port (not `COM1`) and an installed theme, every theme and its images are installed, `VaMax` is 300, and the window's theme has absolute image paths although uTmax was started elsewhere. A theme outside a `Themes` folder is applied unchanged. Skipped if a USB serial adapter is plugged in; the hook never presses Start (`Start=0`). |
 | `tests/test_app_paths.py` | Through the test hook: on a home folder with no `uTmax_files`, uTmax creates it with `cal.txt` and the full tube library (3.01 hangs in a file dialog); started from another folder it still uses `~/uTmax_files/Style.qss`; an existing tube library is kept. `run_sweep(fresh=True, start_in=..., app_style=...)`. |
