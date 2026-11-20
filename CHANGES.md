@@ -6,6 +6,21 @@ Barton's uTmax 3.01 exactly as he published it, so `git diff <first commit>` sho
 every line that differs. Each entry gives the reason, and credits Dean Jenkins
 where the fix comes from his fork.
 
+## 2026-11-20
+
+- **Fixed: the negative supply reading.** The uTracer6 reports its −85 V rail,
+  measured through R27 200 kΩ / R29 4.7 kΩ (Dekker, uTracer6 log, fig. 7.2 and
+  section 9). 3.01 decoded it with the −15 V rail's divider (47 kΩ / 4.7 kΩ), so a
+  healthy uTracer6 showed about −17.7 V in the debug window and the calibration
+  wizard, and the wizard would have set a calibration factor near 4.8 to make up
+  for it. For the uTracer3 3.01 wrote the divider as `(47 + 2)/2`, which C++
+  works out as integer division (24, not 24.5), so the reading was about 2 % off
+  (−39.1 V for −40 V). New `src/neg_rail.h` holds both dividers and the
+  conversion; `Update_adc_scales()` and `GetReal()` in `src/mainwindow.cpp` use
+  it. The test hook's report now includes the negative-rail and supply readings
+  (`src/test_hook.cpp`). Tests: `tests/test_neg_rail.py`. The simulator's
+  uTracer6 profile now reports −85 V through 200 kΩ / 4.7 kΩ.
+
 ## 2026-11-18
 
 - **Fixed: calibration values were never initialised.** 3.01 gave its

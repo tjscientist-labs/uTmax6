@@ -27,20 +27,20 @@
       "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8"
     },
     "neg_divider_top_ohm": {
-      "value": 47000,
-      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8: -15 V rail via 4k7/47k reads n = 651. A second rail, -85 V via 4k7/200k (n = 600), is read on AN11; which one the result string carries is UNVERIFIED. uTmax 3.01's code uses 47/4.7, consistent with the -15 V rail."
+      "value": 200000,
+      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html: schematic fig. 7.2 (uTracer6-V3) measures the -85 V rail through R27 200k / R29 4k7 into AN11; §9 \"RB4/AN11 becomes ADC input to measure the -85 V output voltage\"; §8 formula: -85 V gives n = 600. This is the rail the result string reports. (The -15 V rail, 47k/4k7 into AN5, is not in the result string.)"
     },
     "neg_divider_bottom_ohm": {
       "value": 4700,
-      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8"
+      "source": "Dekker, uTracer6 log, fig. 7.2: R29 4k7"
     },
     "supply_volts": {
       "value": 19.5,
       "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8: cathode offset 19.5 V"
     },
     "neg_rail_volts": {
-      "value": -15.0,
-      "source": "Dekker, dos4ever.com/uTracerlog6/tubetester6.html §8 (see the divider entry)"
+      "value": -85.0,
+      "source": "Dekker, uTracer6 log, fig. 7.2 and §9: the -85 V supply (see the divider entry)"
     },
     "grid_dac_bits": {
       "value": 16,

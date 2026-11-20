@@ -50,6 +50,7 @@ HEADERS  += mainwindow.h \
     grid_word.h \
     reply_format.h \
     voltage_limit.h \
+    neg_rail.h \
     cal_dialog.h \
     cal_wizard.h \
     debug_dialog.h \

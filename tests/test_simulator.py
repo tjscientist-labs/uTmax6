@@ -64,12 +64,13 @@ class Conversions(unittest.TestCase):
         self.assertAlmostEqual(p.grid_code_to_volts(0x0000), 0.0)
 
     def test_utracer6_dekker_scale_factors(self):
-        # Dekker tubetester6.html §8: V_HV = 1.0448 n, V_sup = 0.0538 n, -15 V reads n = 651.
+        # Dekker tubetester6.html §8: V_HV = 1.0448 n, V_sup = 0.0538 n, the -85 V
+        # rail (the one in the result string) reads n = 600.
         p = Profile.find("utracer6")
         self.assertAlmostEqual(p.hv_code_to_volts(1), 1.0448, places=3)
         self.assertAlmostEqual(p.hv_code_to_volts(1023) - p.hv_code_to_volts(1022), 1.0448, places=3)
         self.assertAlmostEqual(p.vsu_code(), 18.6 * 19.5, delta=1.5)
-        self.assertEqual(p.vn_code(), 651)
+        self.assertEqual(p.vn_code(), 600)
 
     def test_heater_pwm_is_rms(self):
         p = Profile.find("utracer6")

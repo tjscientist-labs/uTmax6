@@ -4,7 +4,7 @@ What has been done on uTmax6, and what comes next. Newest first in each list. Th
 reasons behind the order are in [`PLAN.md`](PLAN.md); every code change is
 described in [`CHANGES.md`](../CHANGES.md).
 
-**Last updated:** 2026-11-18
+**Last updated:** 2026-11-20
 
 ## The software uTracer at work
 
@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 58
+put the old code back in a scratch copy and check that the test fails. All 61
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -41,11 +41,18 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 | With Dekker's positive-grid board, uTmax **never accepted a reply** (42 characters, not 38): it timed out and reconnected over and over; a current-limit status `91` would have been missed | Simulator with the board fitted, real program | **Fixed** |
 | Sweeps with a hold delay **stopped above 425 V** on a uTracer6; sweeps without a delay had no last-moment check at all | Code comparison with Dean Jenkins' fork; confirmed with a whole sweep | **Fixed**; a 600 V delayed sweep now runs end to end |
 | **Calibration values never initialised**: a key missing from `cal.txt` took whatever was in memory (seen: an anode factor of −89 254, and 2.5 × 10³¹), uTmax sent 0 V and still called the sweep done; the `cal.txt` made on a new install had no grid calibration at all | First whole sweep through the test hook | **Fixed** |
+| The **negative supply reading** on a uTracer6 showed about −17.7 V instead of −85 V (uTmax used the divider of the other negative rail); on a uTracer3 it was about 2 % off (integer division) | Dekker's answer to which rail the uTracer6 reports, checked against his schematic; then the simulator and a whole sweep | **Fixed** |
 | **Crash on the first point of every sweep** when the style sheet can't be found (a division by zero in the plot code) | First whole sweep through the test hook | To fix |
 | uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
 
 ## Done
 
+- **2026-11-20** — **Fixed: the negative supply reading.** Ronald Dekker
+  confirmed that the uTracer6 reports its −85 V rail; his schematic shows it is
+  measured through 200 kΩ / 4.7 kΩ. uTmax used the divider of the −15 V rail and
+  showed about −17.7 V. Now it shows −85 V, and the uTracer3 reading, about 2 %
+  off from integer division, is exact too. The simulator's uTracer6 now reports
+  −85 V.
 - **2026-11-18** — **Fixed: calibration values never initialised.** Every
   calibration value now starts from a defined default; a new install's `cal.txt`
   includes the grid calibration; a value that can't be read keeps its default
@@ -106,7 +113,6 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 ## In progress
 
-- Which negative rail the uTracer6 reports (-15 V or -85 V).
 - Design of a 1000 V Matrix relay board to replace Nick Barton's.
 - Dummy-load designs for the first hardware checks.
 

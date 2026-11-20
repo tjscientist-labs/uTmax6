@@ -24,7 +24,8 @@
  *     timeout=120             give up after this many seconds
  *
  * Keys left out keep whatever uTmax would have shown. The report holds
- * "result" (done, never started, timeout, no port), every status-bar message
+ * "result" (done, never started, timeout, no port), the last negative-rail and
+ * supply readings ("Vn", "Vsu", volts), every status-bar message
  * and dialog in order (dialogs are recorded and closed, so an error box cannot
  * hang a test), and every measured point from the data store.
  *
@@ -153,7 +154,8 @@ void MainWindow::testHookFinish(const QString &why)
         points.append(QJsonObject{{"Va", r.Va}, {"Vs", r.Vs}, {"Vg", r.Vg}, {"Vf", r.Vf},
                                   {"Ia_mA", r.Ia}, {"Is_mA", r.Is}, {"ignore", int(r.ignore)}});
     QJsonObject report{{"result", why}, {"uTracer6", options.uTracer6},
-                       {"VaMax", calData.VaMax}, {"notes", notes}, {"points", points}};
+                       {"VaMax", calData.VaMax},
+                       {"Vn", adc_real.Vn}, {"Vsu", adc_real.Vsu}, {"notes", notes}, {"points", points}};
     QFile out(testHook.cfg.value("out"));
     if (out.open(QIODevice::WriteOnly))
         out.write(QJsonDocument(report).toJson());

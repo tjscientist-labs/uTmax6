@@ -116,13 +116,15 @@ Each with its own test. The list so far, most serious first:
 - `data.csv` header writes `gm1Del` twice. (Dean Jenkins.)
 - `Style.qss` and the log file use the current folder.
 - New `cal.txt` defaults: `VaMax=300`, `COM=COM1`.
-- Smaller items: integer division in `Update_adc_scales()`, a dead assignment in
+- Smaller items: ~~integer division in `Update_adc_scales()`~~ (fixed
+  2026-11-20, `src/neg_rail.h`), a dead assignment in
   `GetVg()`, no-op `d.remove(i,0)` calls in `readData()`, unchecked `QFile::open()`
   results, an uninitialised `size`, a switch fall-through.
 - uTracer6 conversion constants: Dekker's page confirms 1 MΩ / 4.7 kΩ dividers,
   1 kΩ / 10 kΩ supply divider and 4.7 Ω sense resistors (the simulator's profile
-  now uses them). The uTracer6 has two negative rails (-15 V and -85 V); which
-  one the result string carries is still to be confirmed.
+  now uses them). The uTracer6 has two negative rails (-15 V and -85 V); the
+  result string carries the -85 V rail, measured through 200 kΩ / 4.7 kΩ
+  (Dekker, fig. 7.2). uTmax 3.01 used the -15 V divider; fixed 2026-11-20.
 
 ### 5. Reorganise and comment
 Move the serial protocol and the voltage/current conversions out of the 4,000-line

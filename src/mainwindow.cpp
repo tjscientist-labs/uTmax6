@@ -29,6 +29,7 @@
 #include "grid_word.h"
 #include "reply_format.h"
 #include "voltage_limit.h"
+#include "neg_rail.h"
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -564,8 +565,9 @@ void MainWindow::Update_adc_scales(void) {
     if (options.uTracer6) rvtop=1000000;
     adc_scale.Va=(rvtop + rv)/rv;
     adc_scale.Vs=(rvtop + rv)/rv;
-    adc_scale.Vn=(47 + 2)/2;
-    if (options.uTracer6) adc_scale.Vn=(47+4.7)/4.7;
+    // uTmax6: the uTracer6 reports its -85 V rail (200k / 4k7), and (47 + 2)/2
+    // was integer division in 3.01. See neg_rail.h.
+    adc_scale.Vn=negRailScale(options.uTracer6);
     adc_scale.Vsu=5.0/1023.0*(1.8+6.8)/1.8;
     if (options.uTracer6) adc_scale.Vsu=5.0/1023.0*(1+10)/1;
 
@@ -2268,7 +2270,7 @@ void MainWindow::GetReal()
     adc_real.Vg = VgNow;
     //Iares=0;
     //Isres=0;
-    adc_real.Vn = 5.0*(adc_scale.Vn *(adc_data.Vn/1023.0-1.0)+1.0) *calData.VnVal;
+    adc_real.Vn = negRailVolts(adc_data.Vn, adc_scale.Vn) *calData.VnVal;
     adc_real.Va = (float) (adc_data.Va*5.0/1023.0)* adc_scale.Va * calData.VaVal -adc_real.Vsu - adc_real.Ia*float(calData.IaRsense)/1000.0 + Vdi - Vdar ;
     adc_real.Vs = (float) (adc_data.Vs*5.0/1023.0)* adc_scale.Vs * calData.VsVal -adc_real.Vsu - adc_real.Is*float(calData.IsRsense)/1000.0 + Vdi - Vdar ;
     if (adc_real.Ia<0) adc_real.Ia=0;

@@ -7,6 +7,9 @@ Open: none recorded as a test yet. The list of known problems is in
 docs/PLAN.md (stage 4) and docs/DEVELOPER.md (section 11).
 
 Fixed:
+- 2026-11-20  Negative-rail reading: uTracer6 decoded with the -15 V divider
+              (showed -17.7 V for -85 V); uTracer3 integer division (24 for
+              24.5). Now tests/test_neg_rail.py.
 - 2026-11-18  Calibration values uninitialised; new-install cal.txt without
               Vg0/Vgm; unreadable values became 0. Now
               tests/test_calibration_defaults.py.

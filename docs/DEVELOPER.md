@@ -185,6 +185,7 @@ host side.
 | Tube voltage | V_HV − 18.5 V | V_HV − 19.5 V | V_HV − Vsupply − Ia·Rs + 0.5 V − 0.75 V (uTracer3 diode and darlington, applied on the uTracer6 too) |
 | Current | n = 3683 · Ia · gain · N (18 Ω) | n = N · gain · Rs · 1023/5 · I (Rs = 4.7 Ω) | `GetReal()` |
 | Supply | 0.0234 n | 0.0538 n | `adc_scale.Vsu` |
+| Negative rail | V = 0.12 n − 117.5 (47k / 2k) | the −85 V rail, 200k / 4k7: −85 V reads n = 600 | `negRailScale()`, `negRailVolts()` in `src/neg_rail.h` (3.01 used the −15 V rail's 47k / 4k7 for the uTracer6) |
 | Grid | 10-bit PWM, −50/1023 n | 15-bit magnitude at 100 V, bit 15 = positive | `GetVg()` (see section 11) |
 | Heater | n = 1023 (Vf/Vsupply)² | same | `GetVf()` |
 
@@ -243,6 +244,7 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_voltage_limit.py` + `tests/cpp/test_voltage_limit.cpp` | The anode/screen backstop: C++ checks of `src/voltage_limit.h` for both models, the user's maximum, the 1 V slack and NaN; and that no fixed 425 V is left in `mainwindow.cpp`. |
 | `tests/test_sweeps.py` (+ helper `tests/utmax_run.py`) | Whole sweeps of the real program against the simulator through the test hook: a uTracer6 sweep into 100 kΩ (voltages received, currents reported, heater on then off), a delayed sweep to 600 V (the 425 V fix), the same sweep with the positive-grid board, and a sweep above `VaMax` refused with an entry error. |
 | `tests/test_calibration_defaults.py` | Through the test hook: a `cal.txt` with no calibration factors, and one with unreadable ones, still sweep correctly (anode and grid voltages, currents) and are written back with the defaults; a new install's `cal.txt` has `Vg0`/`Vgm` and none of the obsolete grid keys. |
+| `tests/test_neg_rail.py` + `tests/cpp/test_neg_rail.cpp` | The negative-rail reading: C++ checks of `src/neg_rail.h` against Dekker's formulas (uTracer6 −85 V reads n = 600; uTracer3 V = 0.12 n − 117.5), and whole sweeps where uTmax must report −85 V (uTracer6) and −40 V (uTracer3) from the simulator. |
 | `tests/test_utmax_smoke.py` | Runs the built program with no window against the simulator and checks what it sends, on a uTracer6 with and without the positive-grid board. |
 
 The GitHub workflow runs all of them on Linux x64 and arm64 after building.
@@ -307,6 +309,9 @@ where they exist. The most serious:
 - ~~**Calibration values not initialised**~~ **fixed 2026-11-18**: every
   `calData_t` field has a default; a new `cal.txt` has `Vg0`/`Vgm`; unreadable
   values keep their default.
+- ~~**Negative supply reading**~~ **fixed 2026-11-20**: the uTracer6's −85 V rail
+  was decoded with the −15 V divider (showed −17.7 V); uTracer3 integer division.
+  `src/neg_rail.h`.
 - **Crash (division by zero) on the first plotted point** when the style sheet
   can't be opened: the pen list is never filled.
 - **Discharge waits up to 20 s** after a sweep (section 3.3).
