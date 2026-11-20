@@ -8,6 +8,19 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **Fixed: crash on the first point of every sweep when the style sheet can't be
+  opened.** 3.01 built its plot-line pens only while reading the style sheet named
+  in `cal.txt`. If that file was missing (moved, renamed, a theme not copied to a
+  new machine; a new install points at `style.qss` in the program folder), the
+  pen list stayed empty and `PlotTabWidget::plotUpdate()` took
+  `gpnum % penList->length()`: a division by zero, so uTmax died (SIGFPE) on the
+  first plotted point. The same code could also read a pen past the end of the
+  list when the curve number jumped by more than one, or with "colour by group".
+  New `src/plot_pens.h`: the 50 default pens (the same colours as before) are
+  made when the main window is created (`src/mainwindow.cpp`), the style sheet
+  still recolours them, and every pen in `src/plotTabWidget.cpp` is fetched
+  through `penAt()`, which extends the list as needed. Tests:
+  `tests/test_plot_pens.py`.
 - **Fixed: the negative supply reading.** The uTracer6 reports its −85 V rail,
   measured through R27 200 kΩ / R29 4.7 kΩ (Dekker, uTracer6 log, fig. 7.2 and
   section 9). 3.01 decoded it with the −15 V rail's divider (47 kΩ / 4.7 kΩ), so a

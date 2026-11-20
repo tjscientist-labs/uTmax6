@@ -30,6 +30,7 @@
 #include "reply_format.h"
 #include "voltage_limit.h"
 #include "neg_rail.h"
+#include "plot_pens.h"
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -105,6 +106,7 @@ MainWindow::MainWindow(QWidget *parent) :
     options.VaScale=1.0;
     portInUse = NULL;
     penList = new QList<QPen>;
+    setDefaultPens(*penList);   // uTmax6: pens exist even without a style sheet (plot_pens.h)
     status=Idle;
     startSweep=0;
     stop=false;
@@ -677,23 +679,8 @@ void MainWindow::SetStyleSheet(void) {
                 plotSHowValColor.setNamedColor(c);
             }
         }
-        //Initialize a Pen List-
-        int r,g,b,h,s,v;
-        int plots=16;
-        QPen grPen;
-        for(int i=0; i<50; i++) {
-//            h = 360*(( (i + (i&1)*plots)>>1 ) % plots)/plots ;
-            h = 360* (i  % plots)/plots ;
-            //qDebug() << "h=" << h;
-            s = 200;
-            v = 230-100* floor(i / plots)/floor(50/plots);
-            r = QColor::fromHsv(h,s,v,255).red() ;
-            g = QColor::fromHsv(h,s,v,255).green() ;
-            b = QColor::fromHsv(h,s,v,255).blue() ;
-            grPen.setColor(QColor::fromRgb(r,g,b));
-            grPen.setWidthF(2);
-            if ( penList->length() == i) penList->append(grPen); else penList->replace(i, grPen);
-        }
+        // Default pens (uTmax6: the same colours, now in plot_pens.h)
+        setDefaultPens(*penList);
         //Create a black pen to fill unused entries
         QPen black;
         black.setColor(QColor::fromRgb(0,0,0,255));

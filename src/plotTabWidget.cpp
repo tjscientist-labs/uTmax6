@@ -1,4 +1,5 @@
 #include "plotTabWidget.h"
+#include "plot_pens.h"
 #include <QColor>
 #include <QColorDialog>
 
@@ -475,13 +476,8 @@ void PlotTabWidget::plotUpdate(plotInfo_t *plotinfo) {
                     plotArea->graph(gr)->setData(x,y1)
                             ;
                     //----------- Set plotline pens--------------
-                    //Are enough pens defined?
-                    if (gpnum > (plotinfo->penList->length()-1)) {
-                        //no pen so add one
-                        plotinfo->penList->append(plotinfo->penList->at(gpnum % plotinfo->penList->length()));
-                    }
-                    if (colorGroup->isChecked()) plotArea->graph(gr)->setPen(plotinfo->penList->at(s));
-                    else plotArea->graph(gr)->setPen(plotinfo->penList->at(gpnum));
+                    if (colorGroup->isChecked()) plotArea->graph(gr)->setPen(penAt(*plotinfo->penList, s));
+                    else plotArea->graph(gr)->setPen(penAt(*plotinfo->penList, gpnum));
                     //---------------------------------------------
                     QString grlabel;
                     //TODO: check - used to use Iaparams.penfun
@@ -493,7 +489,7 @@ void PlotTabWidget::plotUpdate(plotInfo_t *plotinfo) {
                     if (y2cb->currentText()!="Off") {
                         plotArea->addGraph(plotArea->xAxis,plotArea->yAxis2);
                         plotArea->graph(gr)->setData(x,y2);
-                        if (colorGroup->isChecked()) grPen= plotinfo->penList->at(s); else grPen = plotinfo->penList->at(gpnum);
+                        if (colorGroup->isChecked()) grPen= penAt(*plotinfo->penList, s); else grPen = penAt(*plotinfo->penList, gpnum);
                         grPen.setStyle(Qt::DotLine);
                         plotArea->graph(gr)->setPen(grPen);
                         plotArea->graph(gr++)->setName(grlabel);
@@ -545,12 +541,7 @@ void PlotTabWidget::plotUpdate(plotInfo_t *plotinfo) {
                     }
                     plotArea->addGraph(plotArea->xAxis,plotArea->yAxis);
                     plotArea->graph(gr)->setData(x,y1);
-                    //Are enough pens defined?
-                    if (gpnum > (plotinfo->penList->length()-1)) {
-                        //no pen so add one
-                        plotinfo->penList->append(plotinfo->penList->at(gpnum % plotinfo->penList->length()));
-                    }
-                    plotArea->graph(gr)->setPen(plotinfo->penList->at(gpnum));
+                    plotArea->graph(gr)->setPen(penAt(*plotinfo->penList, gpnum));
                     QString grlabel;
                     float Va = VaStart;
                     if (VaSteps>=1) Va += (float)a*(float)(VaEnd - VaStart)/(float)VaSteps;
@@ -563,7 +554,7 @@ void PlotTabWidget::plotUpdate(plotInfo_t *plotinfo) {
                     if (y2cb->currentText()!="Off") {
                         plotArea->addGraph(plotArea->xAxis,plotArea->yAxis2);
                         plotArea->graph(gr)->setData(x,y2);
-                        grPen = plotinfo->penList->at(gpnum);
+                        grPen = penAt(*plotinfo->penList, gpnum);
                         grPen.setStyle(Qt::DotLine);
                         plotArea->graph(gr)->setPen(grPen);
                         plotArea->graph(gr++)->setName(grlabel);
@@ -688,13 +679,8 @@ void PlotTabWidget::plotUpdate(plotInfo_t *plotinfo) {
                     plotArea->addGraph(plotArea->xAxis,plotArea->yAxis);
                     plotArea->graph(gr)->setData(x,y1);
                     //----------- Set plotline pens--------------
-                    //Are enough pens defined?
-                    if (gpnum > (plotinfo->penList->length()-1)) {
-                        //no pen so add one
-                        plotinfo->penList->append(plotinfo->penList->at(gpnum % plotinfo->penList->length()));
-                    }
-                    if (colorGroup->isChecked()) plotArea->graph(gr)->setPen(plotinfo->penList->at(s));
-                    else plotArea->graph(gr)->setPen(plotinfo->penList->at(gpnum));
+                    if (colorGroup->isChecked()) plotArea->graph(gr)->setPen(penAt(*plotinfo->penList, s));
+                    else plotArea->graph(gr)->setPen(penAt(*plotinfo->penList, gpnum));
 
                     QString grlabel;
                     float Vs = VsStart;
@@ -712,7 +698,7 @@ void PlotTabWidget::plotUpdate(plotInfo_t *plotinfo) {
                         plotArea->addGraph(plotArea->xAxis,plotArea->yAxis2);
                         plotArea->graph(gr)->setData(x,y2);
                         //select pen
-                        if (colorGroup->isChecked()) grPen= plotinfo->penList->at(s); else grPen = plotinfo->penList->at(gpnum);
+                        if (colorGroup->isChecked()) grPen= penAt(*plotinfo->penList, s); else grPen = penAt(*plotinfo->penList, gpnum);
                         grPen.setStyle(Qt::DotLine);
                         plotArea->graph(gr)->setPen(grPen);
                         plotArea->graph(gr++)->setName(grlabel);

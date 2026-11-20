@@ -65,12 +65,13 @@ Each with its own test. The list so far, most serious first:
   `Vg40`) instead of `Vg0` and `Vgm`, so the grid calibration of every new
   install is uninitialised until the calibration wizard is run. With garbage
   anode factors uTmax sent 0 V; it could as easily send full scale.
-- **Crash on the first point of a sweep when the style sheet can't be opened.**
-  Found 2026-11-18 with the test hook. The plot pens are built only inside
+- ~~**Crash on the first point of a sweep when the style sheet can't be opened.**~~
+  **Fixed 2026-11-20** (`src/plot_pens.h`, `tests/test_plot_pens.py`). Found 2026-11-18 with the test hook. The plot pens are built only inside
   `SetStyleSheet()`'s "file opened" branch; with no style file the pen list is
   empty and `PlotTabWidget::plotUpdate()` takes `gpnum % penList->length()`, a
   division by zero (SIGFPE). A new install's style path is
-  `<program folder>/style.qss`, which a Linux install doesn't have.
+  `<program folder>/style.qss`, which a Linux install doesn't have (still to fix,
+  under new-install defaults: uTmax now runs without it, but unstyled).
 - ~~**Positive grid on a uTracer6 sends the wrong command.**~~ **Fixed 2026-11-18**
   (`src/grid_word.h`, `tests/test_grid_word.py`). `GetVg()` returns a
   negative number as unsigned; `%04X` prints 8 digits and `snprintf` cuts the

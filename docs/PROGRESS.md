@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 61
+put the old code back in a scratch copy and check that the test fails. All 65
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -42,11 +42,16 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 | Sweeps with a hold delay **stopped above 425 V** on a uTracer6; sweeps without a delay had no last-moment check at all | Code comparison with Dean Jenkins' fork; confirmed with a whole sweep | **Fixed**; a 600 V delayed sweep now runs end to end |
 | **Calibration values never initialised**: a key missing from `cal.txt` took whatever was in memory (seen: an anode factor of −89 254, and 2.5 × 10³¹), uTmax sent 0 V and still called the sweep done; the `cal.txt` made on a new install had no grid calibration at all | First whole sweep through the test hook | **Fixed** |
 | The **negative supply reading** on a uTracer6 showed about −17.7 V instead of −85 V (uTmax used the divider of the other negative rail); on a uTracer3 it was about 2 % off (integer division) | Dekker's answer to which rail the uTracer6 reports, checked against his schematic; then the simulator and a whole sweep | **Fixed** |
-| **Crash on the first point of every sweep** when the style sheet can't be found (a division by zero in the plot code) | First whole sweep through the test hook | To fix |
+| **Crash on the first point of every sweep** when the style sheet can't be found (a division by zero in the plot code) | First whole sweep through the test hook | **Fixed** |
 | uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
 
 ## Done
 
+- **2026-11-20** — **Fixed: crash without a style sheet.** If the style sheet
+  named in `cal.txt` couldn't be opened, uTmax had no colours for its plot lines
+  and crashed on the first point of every sweep. Now the default colours always
+  exist, and the style sheet only changes them. A sweep with a missing style
+  sheet now runs to the end.
 - **2026-11-20** — **Fixed: the negative supply reading.** Ronald Dekker
   confirmed that the uTracer6 reports its −85 V rail; his schematic shows it is
   measured through 200 kΩ / 4.7 kΩ. uTmax used the divider of the −15 V rail and
@@ -131,7 +136,7 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [ ] Check every command before sending, treat a bad echo as an error, check replies
 - [x] **Fix the 425 V limit on delayed sweeps**
 - [x] **Initialise every calibration value; write `Vg0`/`Vgm` in a new `cal.txt`**
-- [ ] Don't crash when the style sheet is missing
+- [x] **Don't crash when the style sheet is missing**
 - [ ] Send End Measurement (discharge) on Stop and at the end of each sweep
 - [ ] Stop rewriting `cal.txt` at every start
 - [ ] Create `~/uTmax_files` if missing; load styles and write logs there
