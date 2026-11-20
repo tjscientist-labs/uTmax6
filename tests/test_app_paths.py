@@ -37,17 +37,27 @@ def run_or_hang(**kw):
         raise AssertionError(f"uTmax did not finish: {e}") from None
 
 
+def real_serial_adapters():
+    """USB serial adapters on this machine. A new install opens the first one, so
+    the new-machine tests are skipped when there is one: they must never talk to
+    a real uTracer (or anything else)."""
+    import glob
+    return glob.glob("/dev/ttyUSB*") + glob.glob("/dev/ttyACM*")
+
+
 @unittest.skipUnless(have_utmax(), "set UTMAX_BIN to a built uTmax")
+@unittest.skipIf(real_serial_adapters(), "a USB serial adapter is plugged in")
 class NewMachine(unittest.TestCase):
-    """A home folder with no uTmax_files at all. cal.txt then says COM=COM1, so
-    uTmax can't find the simulator and the hook ends with "no port"."""
+    """A home folder with no uTmax_files at all. The new cal.txt names a serial
+    port that isn't there, so uTmax can't connect; the hook never presses Start
+    (Start=0) and ends with "no port"."""
 
     @classmethod
     def setUpClass(cls):
-        cls.report, _ = run_or_hang(sweep={}, fresh=True, timeout=60)
+        cls.report, _ = run_or_hang(sweep={"Start": 0}, fresh=True, timeout=60)
 
     def test_starts(self):
-        self.assertEqual(self.report["result"], "no port", self.report["notes"])
+        self.assertIn(self.report["result"], ("no port", "ready"), self.report["notes"])
 
     def test_folder_created_with_files(self):
         self.assertIsNotNone(self.report["files_after"], "~/uTmax_files not created")

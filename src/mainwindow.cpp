@@ -32,7 +32,7 @@
 #include "neg_rail.h"
 #include "plot_pens.h"
 #include "cal_file.h"
-#include "app_paths.h"
+#include "new_install.h"
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -592,7 +592,9 @@ void MainWindow::SetStyleSheet(void) {
     QString c;
     uStyle.setFileName(calData.Style);
     if (uStyle.open(QIODevice::ReadOnly)) {
-        QString  StyleSheet = uStyle.readAll();
+        // uTmax6: the theme's ./Themes/... image paths made absolute (3.01: relative
+        // to the folder uTmax was started from). new_install.h
+        QString  StyleSheet = resolveThemeUrls(QString::fromUtf8(uStyle.readAll()), calData.Style);
         this->setStyleSheet(StyleSheet);
         // Look for plotAreaColor
         i = StyleSheet.indexOf("/*plotAreaColor=");
@@ -2376,7 +2378,8 @@ void MainWindow::ReadCalibration()
         //It doesn't exist so set up default values and create a file
         datafile.open(QIODevice::WriteOnly | QIODevice::Text);
         QTextStream calFile(&datafile);
-        calFile << "COM=COM1\n";
+        // uTmax6: the first USB serial port seen (3.01: COM1, even on Linux). new_install.h
+        calFile << "COM=" << defaultSerialPort() << "\n";
         calFile << "Va=1.0\n";
         calFile << "Vs=1.0\n";
         calFile << "Ia=1.0\n";
@@ -2394,9 +2397,10 @@ void MainWindow::ReadCalibration()
         calFile << "VgMax=50\n";
         calFile << "Firmware=1\n";
         calFile << "SavePath="<<QDir::homePath()<<'\n';
-        calData.Style=QCoreApplication::applicationDirPath();
-        calData.Style.append("/style.qss\n");
-        calFile << "Style="<<calData.Style;
+        // uTmax6: a theme that is installed (3.01: <program folder>/style.qss,
+        // which doesn't exist). new_install.h
+        calData.Style = defaultThemePath();
+        calFile << "Style=" << calData.Style << "\n";
         calFile << "Sort=0" << "\n";
         calFile << "Index=0" << "\n";
         calFile << "uTracer6=0" << "\n";

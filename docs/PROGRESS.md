@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 82
+put the old code back in a scratch copy and check that the test fails. All 88
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -46,10 +46,17 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 | After a sweep finished or was stopped, the **reservoirs could stay charged for up to 20 s**: the discharge command went out only with the idle heartbeat | Comparing with Dean Jenkins' fork; confirmed from the simulator's command log | **Fixed** |
 | `cal.txt` was **rewritten at every start, reconnect and exit**, changed or not; and the **tube last used was never remembered** (it was restored before the tube list existed) | Dean Jenkins' fork; the second found by the test for the first | **Fixed** |
 | On a **new machine** uTmax never created its `~/uTmax_files` folder: it asked for the tube library in a file dialog and never saved its settings; its style sheet and logs used whatever folder it was started from | Dean Jenkins' fork; confirmed with a fresh home folder (3.01 sits in the dialog) | **Fixed** |
+| A new install's settings named the serial port **`COM1` even on Linux** and a **style sheet that doesn't exist**; the themes' images only showed when uTmax was started from one particular folder | Reading the code, then a fresh home folder | **Fixed** |
 | uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
 
 ## Done
 
+- **2026-11-20** — **Fixed: first-start settings that work on Linux.** A new
+  install now picks the first USB serial adapter it can see (3.01 wrote the
+  Windows name `COM1`), and comes with its themes installed and the "Utracer
+  Dark" theme selected (3.01 named a style file that didn't exist). Themes now
+  find their images whichever folder uTmax is started from. The maximum
+  voltage stays at 300 V on a new install, on purpose.
 - **2026-11-20** — **Fixed: uTmax sets itself up on a new machine.** It now
   creates its `~/uTmax_files` folder if it is missing and puts its tube library
   there, so a fresh install needs no copying by hand. Before, it opened a file
@@ -163,7 +170,7 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [x] **Send End Measurement (discharge) on Stop and at the end of each sweep**
 - [x] **Stop rewriting `cal.txt` at every start**
 - [x] **Create `~/uTmax_files` if missing; load styles and write logs there**
-- [ ] Sensible new-install defaults for Linux and the uTracer6
+- [x] **Sensible new-install defaults for Linux** (`VaMax` stays 300 V until the uTracer6 is checked)
 - [ ] Smaller fixes (see `PLAN.md`, stage 4)
 - [ ] Check the uTracer6 conversion constants against Dekker's schematic
 - [ ] Move the serial protocol and conversions into their own tested classes

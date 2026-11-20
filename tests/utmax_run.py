@@ -129,6 +129,11 @@ def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90, cal=No
             report["cal_after"] = None
         report["cal_stat"] = (stat_before, _stat(cal_path))
         report["files_after"] = sorted(os.listdir(files)) if os.path.isdir(files) else None
+        report["themes_after"] = (sorted(os.path.relpath(os.path.join(d, f), files)
+                                         for d, _, fs in os.walk(os.path.join(files, "Themes"))
+                                         for f in fs)
+                                  if os.path.isdir(os.path.join(files, "Themes")) else None)
+        report["tmp"] = tmp
         data_csv = os.path.join(files, "data.csv")
         if os.path.exists(data_csv):
             with open(data_csv) as f:

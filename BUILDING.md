@@ -55,8 +55,12 @@ the Qt and GSL DLLs next to it with `windeployqt6`.
 uTmax keeps its tube library (`data.csv`), calibration file (`cal.txt`) and
 style sheet (`Style.qss`, optional) in a folder called `uTmax_files` in your home
 folder. uTmax6 creates the folder the first time it starts and puts a copy of the
-tube library there, so nothing needs copying by hand, and it can be started from
-any folder. An existing `data.csv` is never replaced.
+tube library and the themes there, so nothing needs copying by hand, and it can be started from
+any folder. Existing files are never replaced. On first start it also picks the
+first USB serial adapter it can see (a uTracer's USB lead shows up as
+`/dev/ttyUSB0` or `/dev/ttyACM0`); choose another in the Debug window if needed.
+The maximum anode voltage starts at 300 V; raise it in the calibration settings
+for a uTracer6.
 
 ## Automatic builds
 

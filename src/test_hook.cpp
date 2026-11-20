@@ -23,11 +23,13 @@
  *     Delay=0                 Options > Delay, in seconds (non-zero = hold path)
  *     timeout=120             give up after this many seconds
  *     StopAfter=2             press Stop once this many points are stored
+ *     Start=0                 never press Start: report "ready" once idle
  *
  * Keys left out keep whatever uTmax would have shown. The report holds
  * "result" (done, never started, timeout, no port), the last negative-rail and
  * supply readings ("Vn", "Vsu", volts), the application style sheet in use
- * ("appStyleSheet"), every status-bar message
+ * ("appStyleSheet") and the main window's theme ("windowStyleSheet"), every
+ * status-bar message
  * and dialog in order (dialogs are recorded and closed, so an error box cannot
  * hang a test), and every measured point from the data store.
  *
@@ -108,6 +110,7 @@ void MainWindow::testHookTick()
             return;
         }
         const QMap<QString, QString> &c = testHook.cfg;
+        if (c.value("Start") == "0") { testHookFinish("ready"); return; }
         if (c.contains("tube")) {
             int i = ui->TubeSelector->findText(c["tube"]);
             if (i < 0) { testHookFinish("tube not found: " + c["tube"]); return; }
@@ -164,7 +167,8 @@ void MainWindow::testHookFinish(const QString &why)
     QJsonObject report{{"result", why}, {"uTracer6", options.uTracer6},
                        {"VaMax", calData.VaMax},
                        {"Vn", adc_real.Vn}, {"Vsu", adc_real.Vsu},
-                       {"appStyleSheet", qApp->styleSheet()}, {"notes", notes}, {"points", points}};
+                       {"appStyleSheet", qApp->styleSheet()},
+                       {"windowStyleSheet", styleSheet()}, {"notes", notes}, {"points", points}};
     QFile out(testHook.cfg.value("out"));
     if (out.open(QIODevice::WriteOnly))
         out.write(QJsonDocument(report).toJson());

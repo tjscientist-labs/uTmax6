@@ -7,6 +7,9 @@ Open: none recorded as a test yet. The list of known problems is in
 docs/PLAN.md (stage 4) and docs/DEVELOPER.md (section 11).
 
 Fixed:
+- 2026-11-20  New cal.txt: COM=COM1 on Linux, a style file that doesn't exist;
+              theme images relative to the current folder. Now
+              tests/test_new_install.py.
 - 2026-11-20  ~/uTmax_files never created (file dialog, settings never saved);
               Style.qss and logs in the current folder. Now
               tests/test_app_paths.py.

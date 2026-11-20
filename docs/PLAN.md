@@ -70,8 +70,8 @@ Each with its own test. The list so far, most serious first:
   `SetStyleSheet()`'s "file opened" branch; with no style file the pen list is
   empty and `PlotTabWidget::plotUpdate()` takes `gpnum % penList->length()`, a
   division by zero (SIGFPE). A new install's style path is
-  `<program folder>/style.qss`, which a Linux install doesn't have (still to fix,
-  under new-install defaults: uTmax now runs without it, but unstyled).
+  `<program folder>/style.qss`, which a Linux install doesn't have (fixed
+  2026-11-20 with the new-install defaults: the bundled themes are installed).
 - ~~**Positive grid on a uTracer6 sends the wrong command.**~~ **Fixed 2026-11-18**
   (`src/grid_word.h`, `tests/test_grid_word.py`). `GetVg()` returns a
   negative number as unsigned; `%04X` prints 8 digits and `snprintf` cuts the
@@ -121,7 +121,11 @@ Each with its own test. The list so far, most serious first:
 - `data.csv` header writes `gm1Del` twice. (Dean Jenkins.)
 - ~~`Style.qss` and the log file use the current folder~~ **fixed 2026-11-20**:
   both in `~/uTmax_files` (`src/app_paths.h`).
-- New `cal.txt` defaults: `VaMax=300`, `COM=COM1`.
+- ~~New `cal.txt` defaults: `COM=COM1`, a style sheet that doesn't exist~~
+  **fixed 2026-11-20**: the first USB serial port seen (else `/dev/ttyUSB0` on
+  Linux), and the bundled themes installed in `~/uTmax_files/Themes`, starting on
+  "Utracer Dark"; theme image paths made absolute (`src/new_install.h`).
+  `VaMax=300` kept on purpose for a new install.
 - Smaller items: ~~integer division in `Update_adc_scales()`~~ (fixed
   2026-11-20, `src/neg_rail.h`), a dead assignment in
   `GetVg()`, no-op `d.remove(i,0)` calls in `readData()`, unchecked `QFile::open()`

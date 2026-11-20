@@ -1,6 +1,6 @@
 #include <QtWidgets/QApplication>
 #include "mainwindow.h"
-#include "app_paths.h"
+#include "new_install.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,8 +11,12 @@ int main(int argc, char *argv[])
     // The style sheet is looked for there first (3.01: the current folder only).
     if (!ensureUtmaxDir())
         qWarning() << "Cannot create" << utmaxDir() << "- settings will not be saved";
-    else if (!installDefaultFile(":/data.csv", "data.csv"))
-        qWarning() << "Cannot copy the tube library into" << utmaxDir();
+    else {
+        if (!installDefaultFile(":/data.csv", "data.csv"))
+            qWarning() << "Cannot copy the tube library into" << utmaxDir();
+        if (!installDefaultTree(":/Themes", "Themes"))      // new_install.h
+            qWarning() << "Cannot copy the themes into" << utmaxDir();
+    }
     QString sheetPath = findStyleSheet();
     if (!sheetPath.isEmpty()) {
         QFile stylesheet(sheetPath);

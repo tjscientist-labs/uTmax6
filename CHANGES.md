@@ -8,6 +8,19 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **Fixed: first-start settings, and themes that work from any folder.** The
+  `cal.txt` 3.01 created named the serial port `COM1` (a Windows name) and the
+  style as `<program folder>/style.qss`, which doesn't exist; and the themes
+  find their images as `url(./Themes/img/...)`, relative to the folder uTmax was
+  started from. New `src/new_install.h`: `ReadCalibration()` in
+  `src/mainwindow.cpp` writes the first USB serial port seen
+  (`defaultSerialPort()`; else `/dev/ttyUSB0` on Linux, `COM1` on Windows) and
+  `~/uTmax_files/Themes/Utracer Dark.qss`; `src/main.cpp` installs the themes
+  and their images, now built into the program (`src/utmax6.qrc`), where
+  missing; `SetStyleSheet()` makes a theme's `./` paths absolute
+  (`resolveThemeUrls()`). `VaMax` stays 300 V on a new install, on purpose. The
+  test hook can start without pressing Start (`Start=0`) and reports the
+  window's theme (`src/test_hook.cpp`). Tests: `tests/test_new_install.py`.
 - **Fixed: `~/uTmax_files` is created, and the style sheet and logs live there.**
   3.01 never created the folder: on a new machine it opened a file dialog asking
   for `data.csv`, and `cal.txt` was never written, so every setting was lost at

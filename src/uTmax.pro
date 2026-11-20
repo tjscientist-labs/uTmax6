@@ -54,6 +54,7 @@ HEADERS  += mainwindow.h \
     plot_pens.h \
     cal_file.h \
     app_paths.h \
+    new_install.h \
     cal_dialog.h \
     cal_wizard.h \
     debug_dialog.h \

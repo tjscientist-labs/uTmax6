@@ -217,6 +217,14 @@ there is none; an existing one is never replaced.
   (`Vca` … `Power`), emission test (`EmmVa`, `EmmVs`, `EmmVg`), transconductance
   (`gm1Typ`, `gm1Del`, `gm2Typ`, `gm2Del`), heater time, time, uses, `Va=Vs`. The
   first line is a header and is skipped on reading.
+- **`Themes/`**: the plot and window themes (`Style=` in `cal.txt`) with their
+  images, built into the program (`src/utmax6.qrc`) and copied here on first
+  start where missing. A theme's `url(./Themes/...)` paths are made absolute
+  against the folder that holds its `Themes` folder (`resolveThemeUrls()`,
+  `src/new_install.h`), so themes look the same whichever folder uTmax is
+  started from. A new `cal.txt` names the first USB serial port seen
+  (`defaultSerialPort()`), else `/dev/ttyUSB0` (Linux) or `COM1` (Windows), and
+  "Utracer Dark"; `VaMax` stays 300 V.
 - **`Style.qss`**: the application style sheet, read at start-up from
   `~/uTmax_files`, else the program's folder, else the current folder (where
   3.01 looked). The repository's copy is empty; the themes chosen in Options
@@ -260,6 +268,7 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_sweeps.py` (+ helper `tests/utmax_run.py`) | Whole sweeps of the real program against the simulator through the test hook: a uTracer6 sweep into 100 kΩ (voltages received, currents reported, heater on then off), a delayed sweep to 600 V (the 425 V fix), the same sweep with the positive-grid board, and a sweep above `VaMax` refused with an entry error. |
 | `tests/test_calibration_defaults.py` | Through the test hook: a `cal.txt` with no calibration factors, and one with unreadable ones, still sweep correctly (anode and grid voltages, currents) and are written back with the defaults; a new install's `cal.txt` has `Vg0`/`Vgm` and none of the obsolete grid keys. |
 | `tests/test_plot_pens.py` | Through the test hook: a three-curve sweep with the style sheet missing runs to the end without crashing (3.01: SIGFPE on the first point), and the same sweep with the style sheet. |
+| `tests/test_new_install.py` | Through the test hook, on a fresh home folder: the new `cal.txt` names a Linux USB serial port (not `COM1`) and an installed theme, every theme and its images are installed, `VaMax` is 300, and the window's theme has absolute image paths although uTmax was started elsewhere. A theme outside a `Themes` folder is applied unchanged. Skipped if a USB serial adapter is plugged in; the hook never presses Start (`Start=0`). |
 | `tests/test_app_paths.py` | Through the test hook: on a home folder with no `uTmax_files`, uTmax creates it with `cal.txt` and the full tube library (3.01 hangs in a file dialog); started from another folder it still uses `~/uTmax_files/Style.qss`; an existing tube library is kept. `run_sweep(fresh=True, start_in=..., app_style=...)`. |
 | `tests/test_cal_file.py` | Through the test hook: started with exactly the `cal.txt` uTmax would write, the file is not rewritten (same inode and modification time); the tube last used (`Index`) is remembered; a `cal.txt` that differs is still rewritten. `run_sweep()` reports the file's inode and mtime before and after. |
 | `tests/test_discharge.py` | Through the test hook: End Measurement (`30`) follows the last measurement within 2 s, at the end of a sweep and after Stop (`StopAfter`); 3.01 sent it only with the 20 s heartbeat. |
@@ -275,7 +284,8 @@ person would, then quits. The file holds `key=value` lines: `out` (report path,
 required), `tube` (as shown in the tube list), `VaStart` `VaEnd` `VaSteps`,
 `VsStart` `VsEnd` `VsSteps`, `VgStart` `VgEnd` `VgSteps`, `Vh`, `HtrSecs`
 (heater warm-up, seconds), `Delay` (seconds; non-zero uses the hold command),
-`StopAfter` (press Stop once that many points are stored) and `timeout`. The hook waits until the port is open and uTmax is idle, fills in the
+`StopAfter` (press Stop once that many points are stored), `Start=0` (never
+press Start; the result is `ready`) and `timeout`. The hook waits until the port is open and uTmax is idle, fills in the
 fields, presses Start, and writes a JSON report: `result` (`done`,
 `never started`, `timeout`, `no port`), every status-bar message and dialog in
 order (dialogs are closed so nothing waits for a click), and every point in the

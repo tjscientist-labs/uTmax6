@@ -1,8 +1,53 @@
 <!DOCTYPE RCC>
-<!-- uTmax6: files built into the program. data.csv is copied to ~/uTmax_files
-     on first start if there is none there (app_paths.h). -->
+<!-- uTmax6: files built into the program, copied to ~/uTmax_files on first
+     start where missing: the tube library (app_paths.h) and the themes with
+     their images (new_install.h). -->
 <RCC version="1.0">
 <qresource>
     <file>data.csv</file>
+    <file>Themes/FUtracer 2Dark.qss</file>
+    <file>Themes/FUtracer Dark.qss</file>
+    <file>Themes/FUtracer Darker.qss</file>
+    <file>Themes/FUtracer Light.qss</file>
+    <file>Themes/Utracer Blue.qss</file>
+    <file>Themes/Utracer Dark Light plot.qss</file>
+    <file>Themes/Utracer Dark Trans plot.qss</file>
+    <file>Themes/Utracer Dark.qss</file>
+    <file>Themes/Utracer Darker.qss</file>
+    <file>Themes/Utracer Light.qss</file>
+    <file>Themes/img/dark/arrow-down.png</file>
+    <file>Themes/img/dark/arrow-left.png</file>
+    <file>Themes/img/dark/arrow-right.png</file>
+    <file>Themes/img/dark/arrow-up.png</file>
+    <file>Themes/img/dark/check.png</file>
+    <file>Themes/img/dark/close-button-hover.png</file>
+    <file>Themes/img/dark/close-button-pressed.png</file>
+    <file>Themes/img/dark/close-button.png</file>
+    <file>Themes/img/dark/futracer_logo.png</file>
+    <file>Themes/img/dark/tree-closed.png</file>
+    <file>Themes/img/dark/tree-open.png</file>
+    <file>Themes/img/darker/arrow-down.png</file>
+    <file>Themes/img/darker/arrow-left.png</file>
+    <file>Themes/img/darker/arrow-right.png</file>
+    <file>Themes/img/darker/arrow-up.png</file>
+    <file>Themes/img/darker/check.png</file>
+    <file>Themes/img/darker/close-button-hover.png</file>
+    <file>Themes/img/darker/close-button-pressed.png</file>
+    <file>Themes/img/darker/close-button.png</file>
+    <file>Themes/img/darker/futracer_logo.png</file>
+    <file>Themes/img/darker/tree-closed.png</file>
+    <file>Themes/img/darker/tree-open.png</file>
+    <file>Themes/img/light/arrow-down.png</file>
+    <file>Themes/img/light/arrow-left.png</file>
+    <file>Themes/img/light/arrow-right.png</file>
+    <file>Themes/img/light/arrow-up.png</file>
+    <file>Themes/img/light/check.png</file>
+    <file>Themes/img/light/close-button-hover.png</file>
+    <file>Themes/img/light/close-button-pressed.png</file>
+    <file>Themes/img/light/close-button.png</file>
+    <file>Themes/img/light/futracer_logo.png</file>
+    <file>Themes/img/light/tree-closed.png</file>
+    <file>Themes/img/light/tree-open.png</file>
+    <file>Themes/img/uTracer.jpg</file>
 </qresource>
 </RCC>
