@@ -8,6 +8,20 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **New: the hardware values follow the uTracer model, and Start refuses a
+  uTracer6 with the wrong ones.** In 3.01, ticking "uTracer6" set the grid full
+  scale to 100 V (also on unticking) and left the divider resistor and sense
+  resistors at the uTracer3's 6800 ohm and 18 ohm. On a uTracer6 that charges the
+  reservoir about 1.5 times higher than asked while showing the asked value (300 V
+  asked, 461 V on the reservoir, 299 V shown, on the software uTracer), and shows
+  a quarter of the real current. "Reset calibration" set 5350 ohm / 5.1 ohm /
+  50 V, which fits neither model. New `src/model_values.h`: the two models'
+  values (Dekker's for the uTracer6); `on_checkBox_uTracer6_stateChanged()` in
+  `src/options_dialog.cpp` moves each value still at the other model's default to
+  the new model's; `on_CalResetButton_clicked()` in `src/cal_dialog.cpp` sets the
+  chosen model's values; `SetUpSweepParams()` in `src/mainwindow.cpp` refuses a
+  uTracer6 whose divider or grid full scale is more than 10 % from Dekker's.
+  Tests: `tests/test_model_values.py`, `tests/cpp/test_model_values.cpp`.
 - **New: a positive grid only with the positive-grid board.** 3.01 allowed a
   positive grid on any uTracer6. `RxData()` in `src/mainwindow.cpp` now records
   status bit 7 of each usable reply (`gridBoardFitted`, `src/mainwindow.h`);

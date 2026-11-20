@@ -29,6 +29,7 @@
 #include "grid_word.h"
 #include "reply_format.h"
 #include "voltage_limit.h"
+#include "model_values.h"
 #include "neg_rail.h"
 #include "plot_pens.h"
 #include "cal_file.h"
@@ -3377,6 +3378,20 @@ bool MainWindow::SetUpSweepParams() {
 
     bool ok;
     float Vf;
+    // uTmax6: refuse a uTracer6 whose divider or grid full scale belongs to
+    // another model (3.01 then drove the reservoir about 1.5x too high and showed
+    // the requested voltage). model_values.h
+    {
+        const std::string problem = modelValuesProblem(
+            {calData.RaVal, calData.IaRsense, calData.IsRsense, calData.VgMax}, options.uTracer6);
+        if (!problem.empty()) {
+            QMessageBox::information(this, "Calibration Error",
+                QString::fromStdString(problem) +
+                "uTmax would set the wrong voltages. Correct it in the calibration form, "
+                "or press its Reset button.");
+            return false;
+        }
+    }
     //check the entries
     VaSteps = ui->VaSteps->text().toFloat(&ok);
     if (!ok){

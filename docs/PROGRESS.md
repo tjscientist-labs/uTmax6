@@ -54,6 +54,16 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 ## Done
 
+- **2026-11-20** — **The calibration values now follow the uTracer model.**
+  uTmax works out voltages and currents from a few resistor values on its
+  calibration form, and the uTracer3 and uTracer6 have different ones. Ticking
+  "uTracer6" used to change only the grid value, so on a new install a
+  uTracer6 was driven with the uTracer3's divider: asked for 300 V, the
+  software uTracer's reservoir went to 461 V while uTmax showed 299 V, and the
+  current shown was a quarter of the real one. Now the values follow the
+  model when it is changed, the Reset button uses the right model's values,
+  and Start refuses a uTracer6 whose values cannot be right and says which to
+  correct.
 - **2026-11-20** — **The uTracer NXT speaks the same protocol.** Ronald
   Dekker's NXT log (section 8) shows the same 18-character commands and
   38-character replies as the uTracer3, so the serial code needs no change. What
@@ -221,7 +231,8 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [x] **Create `~/uTmax_files` if missing; load styles and write logs there**
 - [x] **Sensible new-install defaults for Linux** (`VaMax` stays 300 V until the uTracer6 is checked)
 - [x] **Smaller fixes** (see `PLAN.md`, stage 4)
-- [ ] Check the uTracer6 conversion constants against Dekker's schematic
+- [x] **Check the uTracer6 conversion constants against Dekker's schematic** (divider, supply, rail, grid and sense values right; the values now follow the model)
+- [ ] uTracer6: 3.01 still applies the uTracer3's diode and darlington drops (net −0.25 V); to confirm with Dekker
 - [ ] Move the serial protocol and conversions into their own tested classes
 - [ ] Touch-screen layout; encoder and buttons
 - [ ] Matrix SetPins support

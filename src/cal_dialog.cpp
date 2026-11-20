@@ -1,4 +1,5 @@
 #include "cal_dialog.h"
+#include "model_values.h"
 #include "ui_cal_dialog.h"
 #include <QDebug>
 #define RANGE (1.0)
@@ -193,11 +194,15 @@ void Cal_Dialog::on_CalResetButton_clicked()
     //mw->calData.Vg4Val=0;
     //mw->calData.Vg40Val=0;
     mw->calData.VnVal=1;
-    mw->calData.RaVal=5350;
+    // uTmax6: 3.01 set 5350 ohm / 5.1 ohm / 50 V, which fits neither model.
+    // Now the chosen model's values. model_values.h
+    const ModelValues d = modelDefaults(mw->options.uTracer6);
+    mw->calData.RaVal=d.RaVal;
     mw->calData.VaMax=400;
-    mw->calData.VgMax=50;
-    mw->calData.IaRsense=5.1;
-    mw->calData.IsRsense=5.1;
+    mw->calData.VgMax=d.VgMax;
+    mw->calData.IaRsense=d.IaRsense;
+    mw->calData.IsRsense=d.IsRsense;
+    mw->Update_adc_scales();
     UpdateLabels(mw);
     UpdateSliders(mw);
 }

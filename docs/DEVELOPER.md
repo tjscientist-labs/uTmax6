@@ -366,6 +366,12 @@ Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first. The short version:
 Recorded in `docs/PLAN.md` (stage 4), with tests in `tests/test_known_bugs.py`
 where they exist. The most serious:
 
+- ~~**uTracer6 driven with the uTracer3's divider**~~ **fixed 2026-11-20**: the
+  divider, sense resistors and grid full scale now follow the model
+  (`src/model_values.h`), and Start refuses a uTracer6 whose divider or grid full
+  scale is more than 10 % from Dekker's. Before, 300 V asked gave 461 V on the
+  reservoir with 299 V shown.
+
 - ~~**Positive grid on a uTracer6**~~ **fixed 2026-11-18**: `GetVg()` now calls
   `utracer6GridWord()` (`src/grid_word.h`). 3.01's behaviour is kept in
   `tests/repro/positive_grid_word.cpp`.

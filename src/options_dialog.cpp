@@ -1,4 +1,5 @@
 #include "options_dialog.h"
+#include "model_values.h"
 #include "ui_options_dialog.h"
 #include <qmessagebox.h>
 #include <QDebug>
@@ -172,8 +173,21 @@ void options_dialog::on_pushButton_update_clicked()
 
 void options_dialog::on_checkBox_uTracer6_stateChanged(int arg1)
 {
-    mw->calData.VgMax=100;
-    mw->options.uTracer6=(bool)arg1;
+    // uTmax6: 3.01 set VgMax=100 here (on ticking and unticking) and left the
+    // divider and sense resistors at the other model's values. Now each value
+    // still at the other model's default follows the model. model_values.h
+    const bool ut6 = (bool)arg1;
+    if (ut6 != mw->options.uTracer6) {
+        ModelValues v{mw->calData.RaVal, mw->calData.IaRsense, mw->calData.IsRsense,
+                      mw->calData.VgMax};
+        if (switchModelValues(v, ut6)) {
+            mw->calData.RaVal = v.RaVal;
+            mw->calData.IaRsense = v.IaRsense;
+            mw->calData.IsRsense = v.IsRsense;
+            mw->calData.VgMax = v.VgMax;
+        }
+    }
+    mw->options.uTracer6=ut6;
     mw->Update_adc_scales();
 }
 
