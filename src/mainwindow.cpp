@@ -33,6 +33,9 @@
 #include "plot_pens.h"
 #include "cal_file.h"
 #include "new_install.h"
+#include <QDateTime>
+#include <QFileInfo>
+#include <QMessageBox>
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -518,6 +521,26 @@ MainWindow::MainWindow(QWidget *parent) :
     calFileName.append("cal.txt");
     ReadCalibration();
     ReadDataFile();
+    // uTmax6: a tube library with no usable tube (empty, header only, damaged)
+    // crashed uTmax 3.01 at start-up. Keep the file under another name, install
+    // the built-in library, and say so once the window is up (app_paths.h).
+    if (tubeDataVec.empty()) {
+        const QString inFolder = utmaxDir() + "data.csv";
+        QString kept;
+        if (QFileInfo(dataFileName).absoluteFilePath() == QFileInfo(inFolder).absoluteFilePath()
+                && QFile::exists(inFolder)) {
+            kept = inFolder + ".unusable-" + QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss");
+            QFile::rename(inFolder, kept);
+        }
+        dataFileName = inFolder;
+        installDefaultFile(":/data.csv", "data.csv");
+        ReadDataFile();
+        QString msg = tr("The tube library had no usable tubes, so the built-in library was installed.");
+        if (!kept.isEmpty()) msg += tr("\nThe old file was kept as %1").arg(kept);
+        QTimer::singleShot(0, this, [this, msg]() {
+            QMessageBox::warning(this, tr("Tube library"), msg);
+        });
+    }
     Update_adc_scales();
     //create plot tab
     ignoreIndexChange=false;
@@ -2651,6 +2674,9 @@ void MainWindow::ReadDataFile()
         else ui->statusBar->showMessage(tr("Invalid line found in data.csv file"));
     }
     datafile.close();
+    // uTmax6: with no usable tube the lines below crashed (std::out_of_range) before
+    // the window opened. The constructor deals with an empty library.
+    if (tubeDataVec.empty()) return;
     SortTubeData(options.TLSortOrder);
     updateTubeSelector(tubeDataVec.at(0).ID);
     TubeSelector_StringChanged(tubeDataVec.at(0).ID);

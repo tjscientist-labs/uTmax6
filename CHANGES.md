@@ -8,6 +8,15 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **Fixed: crash at start-up when the tube library has no usable tube.**
+  `ReadDataFile()` in `src/mainwindow.cpp` took the first tube
+  (`tubeDataVec.at(0)`) without checking there was one, so an empty, header-only
+  or damaged `data.csv` made uTmax abort (`std::out_of_range`) before its window
+  opened. `ReadDataFile()` now returns on an empty library, and the constructor
+  renames the file `data.csv.unusable-<date-time>`, installs the built-in library
+  (`installDefaultFile()`, `src/app_paths.h`) and shows a message once the window
+  is up. Tests: `tests/test_tube_library.py`; `tests/utmax_run.py` can write a
+  test's own `data.csv`.
 - **Fixed: first-start settings, and themes that work from any folder.** The
   `cal.txt` 3.01 created named the serial port `COM1` (a Windows name) and the
   style as `<program folder>/style.qss`, which doesn't exist; and the themes

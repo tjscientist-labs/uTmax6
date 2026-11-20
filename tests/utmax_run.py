@@ -47,11 +47,12 @@ def _stat(path):
 
 
 def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90, cal=None,
-              fresh=False, start_in=None, app_style=None):
+              fresh=False, start_in=None, app_style=None, data_csv=None):
     """fresh=True: a home folder with no uTmax_files at all (a new machine; cal is
     then ignored). start_in: "files" (default), "home" or "elsewhere" (an empty
     folder), the folder uTmax is started from. app_style: text for
-    uTmax_files/Style.qss (default: the repository's, which is empty)."""
+    uTmax_files/Style.qss (default: the repository's, which is empty). data_csv:
+    text for uTmax_files/data.csv (default: the repository's tube library)."""
     tmp = tempfile.mkdtemp(prefix="utmax-sweep-")
     try:
         home = os.path.join(tmp, "home")
@@ -66,6 +67,9 @@ def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90, cal=No
         else:
             os.makedirs(files)
             shutil.copy(os.path.join(ROOT, "src", "data.csv"), files)
+            if data_csv is not None:
+                with open(os.path.join(files, "data.csv"), "w") as f:
+                    f.write(data_csv)
             if app_style is None:
                 shutil.copy(os.path.join(ROOT, "src", "Style.qss"), files)
             else:

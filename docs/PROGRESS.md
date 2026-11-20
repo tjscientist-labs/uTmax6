@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 88
+put the old code back in a scratch copy and check that the test fails. All 100
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -47,10 +47,15 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 | `cal.txt` was **rewritten at every start, reconnect and exit**, changed or not; and the **tube last used was never remembered** (it was restored before the tube list existed) | Dean Jenkins' fork; the second found by the test for the first | **Fixed** |
 | On a **new machine** uTmax never created its `~/uTmax_files` folder: it asked for the tube library in a file dialog and never saved its settings; its style sheet and logs used whatever folder it was started from | Dean Jenkins' fork; confirmed with a fresh home folder (3.01 sits in the dialog) | **Fixed** |
 | A new install's settings named the serial port **`COM1` even on Linux** and a **style sheet that doesn't exist**; the themes' images only showed when uTmax was started from one particular folder | Reading the code, then a fresh home folder | **Fixed** |
+| A tube library with **no usable tube** (empty, header only, damaged) **crashed uTmax at start-up**, every time, until the file was fixed by hand | Checking an unchecked file read in the small-fixes list | **Fixed** |
 | uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
 
 ## Done
 
+- **2026-11-20** — **Fixed: a crash at start-up with an empty or damaged tube
+  library.** uTmax picked the first tube without checking there was one, so it
+  would not start at all. Now it keeps the bad file under another name,
+  installs the built-in library, and says so.
 - **2026-11-20** — **Fixed: first-start settings that work on Linux.** A new
   install now picks the first USB serial adapter it can see (3.01 wrote the
   Windows name `COM1`), and comes with its themes installed and the "Utracer
