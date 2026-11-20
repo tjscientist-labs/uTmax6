@@ -7,6 +7,9 @@ Open: none recorded as a test yet. The list of known problems is in
 docs/PLAN.md (stage 4) and docs/DEVELOPER.md (section 11).
 
 Fixed:
+- 2026-11-20  End Measurement (30, discharge) sent only by the 20 s idle
+              heartbeat, not when a sweep ends or is stopped. Now
+              tests/test_discharge.py.
 - 2026-11-20  Crash (SIGFPE) on the first plotted point when the style sheet
               can't be opened: no pens. Now tests/test_plot_pens.py.
 - 2026-11-20  Negative-rail reading: uTracer6 decoded with the -15 V divider

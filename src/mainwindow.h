@@ -189,6 +189,7 @@ public:
         int phase = 0;                              // 0 wait idle, 1 sweeping, 2 done
         int ticks = 0, idleTicks = 0;
         bool seenBusy = false;
+        bool stopPressed = false;
         QTimer *timer = nullptr;
     } testHook;
 
@@ -261,6 +262,7 @@ private:
     void Hold();
     void Sweep_ADC();
     void HeatOff_f();
+    void Discharge_Done();
     void sendSer();
     void StoreData(bool);
     void SetUpPlot();
@@ -297,7 +299,7 @@ private:
                     Sweep_set, Sweep_adc, Idle, wait_adc,
                     hold_ack, hold, heat_done, HeatOff, readcal, readversion,
                     writeChipCal, apply, apply_measure, apply_response, apply_end, rxadc,
-                  erase_flash, pgm_flash};
+                  erase_flash, pgm_flash, discharge};
     Status_t status;
 
 /*

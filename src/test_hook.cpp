@@ -22,6 +22,7 @@
  *     HtrSecs=1               heater warm-up before the sweep, seconds (uTmax: 60)
  *     Delay=0                 Options > Delay, in seconds (non-zero = hold path)
  *     timeout=120             give up after this many seconds
+ *     StopAfter=2             press Stop once this many points are stored
  *
  * Keys left out keep whatever uTmax would have shown. The report holds
  * "result" (done, never started, timeout, no port), the last negative-rail and
@@ -131,6 +132,12 @@ void MainWindow::testHookTick()
         return;
     }
     case 1:                                         // sweep running: wait for idle again
+        if (testHook.cfg.contains("StopAfter") && !testHook.stopPressed
+                && dataStore->length() >= testHook.cfg["StopAfter"].toInt()) {
+            testHook.stopPressed = true;
+            testHookNote("hook", "stop");
+            on_Stop_clicked();
+        }
         if (status != Idle) testHook.seenBusy = true;
         else if (testHook.seenBusy && rxLen == 0) testHookFinish("done");
         else if (!testHook.seenBusy && ++testHook.idleTicks > 5000 / HOOK_TICK_MS)

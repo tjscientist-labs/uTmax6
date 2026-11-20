@@ -118,8 +118,11 @@ within 250 ms.
    (`StoreData()`, line 1805).
 6. After the last point: optional model fit (`dr_optimize::Optimize()`), re-plot
    (`RePlot()`, line 1763), auto-save, then `End()` sends a final `10` at 4 V on
-   anode and screen and the heater off or held. The discharge command
-   `30` is sent only by the next idle heartbeat (a known problem, section 11).
+   anode and screen and the heater off or held, and `HeatOff_f()` then sends
+   End Measurement (`30`, discharge the reservoirs, grid to 0 V) before going
+   idle (`Discharge_Done()`). Stop, a current-limit abort and the voltage
+   backstop all leave through `End()`, so they discharge too. (3.01 left the `30`
+   to the next 20-second idle heartbeat.)
 
 ### 3.4 Receiving
 
@@ -245,6 +248,7 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_sweeps.py` (+ helper `tests/utmax_run.py`) | Whole sweeps of the real program against the simulator through the test hook: a uTracer6 sweep into 100 kΩ (voltages received, currents reported, heater on then off), a delayed sweep to 600 V (the 425 V fix), the same sweep with the positive-grid board, and a sweep above `VaMax` refused with an entry error. |
 | `tests/test_calibration_defaults.py` | Through the test hook: a `cal.txt` with no calibration factors, and one with unreadable ones, still sweep correctly (anode and grid voltages, currents) and are written back with the defaults; a new install's `cal.txt` has `Vg0`/`Vgm` and none of the obsolete grid keys. |
 | `tests/test_plot_pens.py` | Through the test hook: a three-curve sweep with the style sheet missing runs to the end without crashing (3.01: SIGFPE on the first point), and the same sweep with the style sheet. |
+| `tests/test_discharge.py` | Through the test hook: End Measurement (`30`) follows the last measurement within 2 s, at the end of a sweep and after Stop (`StopAfter`); 3.01 sent it only with the 20 s heartbeat. |
 | `tests/test_neg_rail.py` + `tests/cpp/test_neg_rail.cpp` | The negative-rail reading: C++ checks of `src/neg_rail.h` against Dekker's formulas (uTracer6 −85 V reads n = 600; uTracer3 V = 0.12 n − 117.5), and whole sweeps where uTmax must report −85 V (uTracer6) and −40 V (uTracer3) from the simulator. |
 | `tests/test_utmax_smoke.py` | Runs the built program with no window against the simulator and checks what it sends, on a uTracer6 with and without the positive-grid board. |
 
@@ -256,8 +260,8 @@ The GitHub workflow runs all of them on Linux x64 and arm64 after building.
 person would, then quits. The file holds `key=value` lines: `out` (report path,
 required), `tube` (as shown in the tube list), `VaStart` `VaEnd` `VaSteps`,
 `VsStart` `VsEnd` `VsSteps`, `VgStart` `VgEnd` `VgSteps`, `Vh`, `HtrSecs`
-(heater warm-up, seconds), `Delay` (seconds; non-zero uses the hold command) and
-`timeout`. The hook waits until the port is open and uTmax is idle, fills in the
+(heater warm-up, seconds), `Delay` (seconds; non-zero uses the hold command),
+`StopAfter` (press Stop once that many points are stored) and `timeout`. The hook waits until the port is open and uTmax is idle, fills in the
 fields, presses Start, and writes a JSON report: `result` (`done`,
 `never started`, `timeout`, `no port`), every status-bar message and dialog in
 order (dialogs are closed so nothing waits for a click), and every point in the
@@ -316,7 +320,8 @@ where they exist. The most serious:
 - ~~**Crash (division by zero) on the first plotted point**~~ **fixed 2026-11-20**:
   default pens are made at start-up and fetched through `penAt()`
   (`src/plot_pens.h`).
-- **Discharge waits up to 20 s** after a sweep (section 3.3).
+- ~~**Discharge waits up to 20 s** after a sweep~~ **fixed 2026-11-20**: `30` is
+  sent as soon as `End()` finishes (section 3.3).
 - `cal.txt` rewritten on every start; `~/uTmax_files` not created; `Style.qss` and
   the log read and written in the current folder.
 

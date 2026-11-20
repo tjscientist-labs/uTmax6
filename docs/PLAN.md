@@ -109,8 +109,9 @@ Each with its own test. The list so far, most serious first:
   2026-11-18**: every measurement is checked against `VaMax`, capped at 425 V
   (uTracer3) or 1000 V (uTracer6), in `src/voltage_limit.h`. The no-delay path,
   which had no backstop, now has the same one.
-- Discharge (End Measurement, command `30`) sent only by a 20-second idle
-  heartbeat; send it on Stop and at the end of every sweep. (After Dean Jenkins.)
+- ~~Discharge (End Measurement, command `30`) sent only by a 20-second idle
+  heartbeat~~ **fixed 2026-11-20**: sent on Stop and at the end of every sweep.
+  (After Dean Jenkins.)
 - `cal.txt` rewritten every time the port opens at start-up. (Dean Jenkins.)
 - `~/uTmax_files` never checked or created; calibration silently not saved.
   (Dean Jenkins.)

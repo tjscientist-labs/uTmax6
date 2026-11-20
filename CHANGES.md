@@ -8,6 +8,17 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **Fixed: the reservoirs are discharged as soon as a sweep ends.** Every way out
+  of a sweep (the last point, Stop, a current-limit abort, the voltage backstop)
+  goes through `End()`, which sends a last measurement at 4 V. 3.01 then went
+  straight to idle, and End Measurement (`30`: discharge the anode and screen
+  reservoirs, grid to 0 V) went out only with the 20-second idle heartbeat, so
+  the reservoirs could stay charged for up to 20 s. `HeatOff_f()` in
+  `src/mainwindow.cpp` now sends `30` and goes idle when it is echoed (new state
+  `discharge` and `Discharge_Done()` in `src/mainwindow.h`). The heater is not
+  touched; the heartbeat has always sent `30` with the heater held. After Dean
+  Jenkins' fork, which sends it on Stop. The test hook can now press Stop
+  part-way (`StopAfter=`, `src/test_hook.cpp`). Tests: `tests/test_discharge.py`.
 - **Fixed: crash on the first point of every sweep when the style sheet can't be
   opened.** 3.01 built its plot-line pens only while reading the style sheet named
   in `cal.txt`. If that file was missing (moved, renamed, a theme not copied to a

@@ -991,6 +991,9 @@ void MainWindow::RxData()
         case HeatOff:
             HeatOff_f();
         break;
+        case discharge:
+            Discharge_Done();
+            break;
         case apply:
             Apply();
             break;
@@ -1592,7 +1595,25 @@ void MainWindow::End(bool heat_off) {
     sendSer();
 }
 
+// uTmax6: after the last measurement (End(), at 4 V), send End Measurement (30),
+// which discharges the anode and screen reservoirs and sets the grid to 0 V
+// (Dekker, uTracer3 log, "Communication protocol"). 3.01 went straight to Idle
+// here, and the 30 went out only with the next 20-second idle heartbeat, so the
+// reservoirs could stay charged for up to 20 s after a sweep finished or was
+// stopped. Every way out of a sweep goes through End(): the last point, Stop,
+// a current-limit abort and the voltage backstop. (After Dean Jenkins' fork.)
+// The heater is not changed: the heartbeat has always sent 30 with it held.
 void MainWindow::HeatOff_f() {
+    ui->statusBar->showMessage(tr("Discharging"));
+    cmd = TxString = "300000000000000000";
+    rxLen = TxString.length();
+    status = discharge;
+    timeout = PING_TIMEOUT;
+    timer_on = true;
+    sendSer();
+}
+
+void MainWindow::Discharge_Done() {
     timer_on=false;
     RecallCtlState();
     ui->statusBar->showMessage(tr("Ready"));
