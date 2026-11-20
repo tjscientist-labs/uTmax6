@@ -8,6 +8,23 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **Fixed: `cal.txt` is written only when it changes, and safely.** 3.01 rewrote
+  `cal.txt` whenever the serial port opened (every start and every successful
+  reconnect), on every exit, and after plot and pen updates, changed or not:
+  needless writes to a Raspberry Pi's SD card, and a power cut during one could
+  leave a half-written file. `SaveCalFile()` in `src/mainwindow.cpp` now builds
+  the text and calls `writeFileIfChanged()` (new `src/cal_file.h`), which does
+  nothing if the file already holds that text and otherwise writes through
+  `QSaveFile` (a temporary file renamed into place). The file is now written
+  with `\n` line endings on every system. After Dean Jenkins' fork, which
+  stopped the start-up rewrite.
+- **Fixed: the tube last used is remembered.** 3.01 read `Index=` from `cal.txt`
+  before the tube list was loaded, so it was lost, every start came up on the
+  first tube, and `Index=0` was written back. The value is now kept
+  (`savedTubeIndex`, `src/mainwindow.h`) and applied at the end of start-up.
+  Tests for both: `tests/test_cal_file.py`; `tests/utmax_run.py` now reports the
+  file's inode and modification time before and after a run, fills in `{home}`
+  in a test's `cal.txt`, and can keep uTmax's debug output (`UTMAX_STDERR=`).
 - **Fixed: the reservoirs are discharged as soon as a sweep ends.** Every way out
   of a sweep (the last point, Stop, a current-limit abort, the voltage backstop)
   goes through `End()`, which sends a last measurement at 4 V. 3.01 then went

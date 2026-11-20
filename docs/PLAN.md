@@ -112,7 +112,9 @@ Each with its own test. The list so far, most serious first:
 - ~~Discharge (End Measurement, command `30`) sent only by a 20-second idle
   heartbeat~~ **fixed 2026-11-20**: sent on Stop and at the end of every sweep.
   (After Dean Jenkins.)
-- `cal.txt` rewritten every time the port opens at start-up. (Dean Jenkins.)
+- ~~`cal.txt` rewritten every time the port opens at start-up~~ **fixed
+  2026-11-20**: written only when its text changes, through a temporary file
+  (`src/cal_file.h`); the tube last used is now remembered. (Dean Jenkins.)
 - `~/uTmax_files` never checked or created; calibration silently not saved.
   (Dean Jenkins.)
 - `data.csv` header writes `gm1Del` twice. (Dean Jenkins.)

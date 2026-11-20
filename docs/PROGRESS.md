@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 70
+put the old code back in a scratch copy and check that the test fails. All 75
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -44,10 +44,19 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 | The **negative supply reading** on a uTracer6 showed about −17.7 V instead of −85 V (uTmax used the divider of the other negative rail); on a uTracer3 it was about 2 % off (integer division) | Dekker's answer to which rail the uTracer6 reports, checked against his schematic; then the simulator and a whole sweep | **Fixed** |
 | **Crash on the first point of every sweep** when the style sheet can't be found (a division by zero in the plot code) | First whole sweep through the test hook | **Fixed** |
 | After a sweep finished or was stopped, the **reservoirs could stay charged for up to 20 s**: the discharge command went out only with the idle heartbeat | Comparing with Dean Jenkins' fork; confirmed from the simulator's command log | **Fixed** |
+| `cal.txt` was **rewritten at every start, reconnect and exit**, changed or not; and the **tube last used was never remembered** (it was restored before the tube list existed) | Dean Jenkins' fork; the second found by the test for the first | **Fixed** |
 | uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
 
 ## Done
 
+- **2026-11-20** — **Fixed: `cal.txt` is written only when something changes.**
+  uTmax rewrote its settings file every time it started, reconnected or closed,
+  even when nothing had changed: needless writes to a Raspberry Pi's SD card,
+  and a power cut at the wrong moment could leave the calibration half written.
+  Now it writes only when the text differs, and always through a temporary
+  file swapped into place, so the file is never half written. Making the test
+  pass turned up a second bug: uTmax never remembered the tube last used. Now
+  it starts on that tube.
 - **2026-11-20** — **Fixed: discharge straight after a sweep.** When a sweep
   finished or was stopped, uTmax left the anode and screen capacitors
   charged until its next 20-second heartbeat sent the discharge command. Now it
@@ -145,7 +154,7 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [x] **Initialise every calibration value; write `Vg0`/`Vgm` in a new `cal.txt`**
 - [x] **Don't crash when the style sheet is missing**
 - [x] **Send End Measurement (discharge) on Stop and at the end of each sweep**
-- [ ] Stop rewriting `cal.txt` at every start
+- [x] **Stop rewriting `cal.txt` at every start**
 - [ ] Create `~/uTmax_files` if missing; load styles and write logs there
 - [ ] Sensible new-install defaults for Linux and the uTracer6
 - [ ] Smaller fixes (see `PLAN.md`, stage 4)

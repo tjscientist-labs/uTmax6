@@ -31,6 +31,7 @@
 #include "voltage_limit.h"
 #include "neg_rail.h"
 #include "plot_pens.h"
+#include "cal_file.h"
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -545,6 +546,10 @@ MainWindow::MainWindow(QWidget *parent) :
     calWizStep=false;
     enableDebugMsg=false;
     stopDebugMsg=false;
+    // uTmax6: select the tube last used (Index= in cal.txt), now that the tube
+    // list and the plot exist; as if the user had picked it.
+    if (savedTubeIndex > 0 && savedTubeIndex < ui->TubeSelector->count())
+        ui->TubeSelector->setCurrentIndex(savedTubeIndex);
     SerialPortDiscovery();
 }
 
@@ -2442,9 +2447,10 @@ void MainWindow::ReadCalibration()
         else if (list.first()=="Style") calData.Style = list.at(1);
         else if (list.first()=="Sort") options.TLSortOrder = list.at(1).toShort();
         else if (list.first()=="Index") {
-            on_TubeSelector_currentIndexChanged_enable=false;
-            ui->TubeSelector->setCurrentIndex(list.at(1).toShort());
-            on_TubeSelector_currentIndexChanged_enable=true;
+            // uTmax6: kept and applied at the end of the constructor. 3.01 set it
+            // here, before the tube list was loaded, so it was lost: every start
+            // came up on the first tube and wrote Index=0 back to cal.txt.
+            savedTubeIndex = list.at(1).toInt();
         }
         else if (list.first()=="uTracer6") options.uTracer6 = list.at(1).toInt();
         else if (list.first()=="heater") calData.heaterscale = list.at(1).toFloat();
@@ -2454,12 +2460,18 @@ void MainWindow::ReadCalibration()
     ui->AutoPath->setText(calData.SavePath);
 }
 
+// uTmax6: build the text first and write it only if it differs from the file on
+// disk, through QSaveFile (a temporary file renamed into place). 3.01 rewrote
+// cal.txt every time the port opened (each start and each reconnect), on every
+// exit and on plot updates, unchanged or not: needless writes to a Pi's SD card,
+// and a power cut during one could leave a half-written file. (Dean Jenkins'
+// fork stopped the start-up rewrite.) Rule in cal_file.h.
 void MainWindow::SaveCalFile()
 {
     qDebug () << "SaveCalFile...";
-    QFile datafile(calFileName);
-    if (datafile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream calFile(&datafile);
+    QString text;
+    {
+        QTextStream calFile(&text);
         if (portInUse!=NULL) calFile << "COM=" << portInUse->portName() << "\n";
         else calFile << "COM=COM1\n";
         calFile << "Va=" << calData.VaVal << "\n";
@@ -2488,8 +2500,8 @@ void MainWindow::SaveCalFile()
         calFile << "heater=" << calData.heaterscale<< "\n";
 
         calFile.flush();
-        datafile.close();
-    } else qDebug() << "Save Cal file failed";
+    }
+    if (!writeFileIfChanged(calFileName, text)) qDebug() << "Save Cal file failed";
 }
 
 //------------------------------------------------------

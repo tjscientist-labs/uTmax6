@@ -3,8 +3,9 @@
     report, sim_log = run_sweep({"VaStart": 30, "VaEnd": 300, ...}, sim_args=["--load", "r:100k"])
 
 cal=None writes a complete cal.txt; a string is written as cal.txt instead
-({port} and {style} are filled in); cal=False writes none (a new install).
-The cal.txt uTmax leaves behind is returned in report["cal_after"].
+({port}, {style} and {home} are filled in); cal=False writes none (a new install).
+The cal.txt uTmax leaves behind is returned in report["cal_after"], and the
+file's (inode, mtime in ns) before and after the run in report["cal_stat"].
 
 Starts the simulator on a temporary port, gives uTmax a temporary home folder
 with a complete cal.txt (a uTracer6 unless told otherwise) and a real style
@@ -38,6 +39,13 @@ def _no_core_dumps():
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
 
 
+def _stat(path):
+    if not os.path.exists(path):
+        return None
+    st = os.stat(path)
+    return (st.st_ino, st.st_mtime_ns)
+
+
 def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90, cal=None):
     tmp = tempfile.mkdtemp(prefix="utmax-sweep-")
     try:
@@ -52,7 +60,7 @@ def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90, cal=No
         cal_path = os.path.join(files, "cal.txt")
         if isinstance(cal, str):
             with open(cal_path, "w") as f:
-                f.write(cal.format(port=port, style=style))
+                f.write(cal.format(port=port, style=style, home=os.path.join(tmp, "home")))
         elif cal is None:
             with open(cal_path, "w") as f:
                 # Every calibration key uTmax reads (3.01 left missing ones uninitialised).
@@ -60,6 +68,7 @@ def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90, cal=No
                         f"RaVal={'4700' if utracer6 else '6800'}\nVaMax={va_max}\n"
                         f"IaRsense={rs}\nIsRsense={rs}\nVgMax={'100' if utracer6 else '50'}\n"
                         f"Firmware=1\nuTracer6={int(utracer6)}\nheater=0\nStyle={style}\n")
+        stat_before = _stat(cal_path)
         report_path = os.path.join(tmp, "report.json")
         settings = dict(sweep)
         settings.setdefault("HtrSecs", 1)
@@ -81,9 +90,12 @@ def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90, cal=No
                     break
                 time.sleep(0.05)
             env = dict(os.environ, HOME=os.path.join(tmp, "home"), QT_QPA_PLATFORM="offscreen")
+            # UTMAX_STDERR=<file> keeps uTmax's debug output, for looking into a failure.
+            err = open(os.environ["UTMAX_STDERR"], "w") if os.environ.get("UTMAX_STDERR") \
+                else subprocess.DEVNULL
             proc = subprocess.run([os.path.abspath(UTMAX), "--test-sweep", sweep_file],
                                   cwd=files, env=env, timeout=timeout,
-                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                  stdout=subprocess.DEVNULL, stderr=err,
                                   preexec_fn=_no_core_dumps)
         finally:
             sim.terminate()
@@ -93,7 +105,12 @@ def run_sweep(sweep, sim_args=(), utracer6=True, va_max=1000, timeout=90, cal=No
         with open(report_path) as f:
             report = json.load(f)
         report["exit_status"] = proc.returncode
-        report["cal_after"] = open(cal_path).read() if os.path.exists(cal_path) else None
+        if os.path.exists(cal_path):
+            with open(cal_path) as f:
+                report["cal_after"] = f.read()
+        else:
+            report["cal_after"] = None
+        report["cal_stat"] = (stat_before, _stat(cal_path))
         with open(log) as f:
             commands = [json.loads(line) for line in f]
         return report, commands

@@ -408,6 +408,7 @@ private:
     static bool sortbyFreq(const tubeData_t & struct1, const tubeData_t & struct2);
     static bool sortbyAlpha(const tubeData_t & struct1, const tubeData_t & struct2);
     bool on_TubeSelector_currentIndexChanged_enable;
+    int savedTubeIndex = -1;                    // Index= from cal.txt, applied after the tube list loads
     bool on_TubeType_currentIndexChanged_enable;
     void LabelPins(tubeData_t tubeData);
     bool enableDebugMsg;

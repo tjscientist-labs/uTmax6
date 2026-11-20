@@ -203,7 +203,11 @@ Everything lives in `~/uTmax_files/` (the folder isn't created by uTmax 3.01):
 - **`cal.txt`**: `key=value` lines. `COM` (serial port), the calibration factors,
   `RaVal`, `VaMax`, `IaRsense`, `IsRsense`, `VgMax`, `Firmware`, `uTracer6`,
   `heater`, `SavePath`, `Style`, `Sort`, `Index`. Created with defaults if missing
-  (`ReadCalibration()`, around line 2330); rewritten by `SaveCalFile()`.
+  (`ReadCalibration()`, around line 2330); saved by `SaveCalFile()`, which builds
+  the text and writes it only if it differs from the file, through a temporary
+  file renamed into place (`writeFileIfChanged()`, `src/cal_file.h`). `Index`
+  (the tube last used) is applied at the end of the constructor, after the tube
+  list has loaded.
 - **`data.csv`**: the tube library, one tube per line. Columns, in order: `ID`,
   socket pins for `A, G2, G1, G1b, Cathode, G3, Heater, Heater`, heater volts,
   SPICE model, the sweep ranges (`VaStart`…`VgStep`), limits and model parameters
@@ -248,6 +252,7 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_sweeps.py` (+ helper `tests/utmax_run.py`) | Whole sweeps of the real program against the simulator through the test hook: a uTracer6 sweep into 100 kΩ (voltages received, currents reported, heater on then off), a delayed sweep to 600 V (the 425 V fix), the same sweep with the positive-grid board, and a sweep above `VaMax` refused with an entry error. |
 | `tests/test_calibration_defaults.py` | Through the test hook: a `cal.txt` with no calibration factors, and one with unreadable ones, still sweep correctly (anode and grid voltages, currents) and are written back with the defaults; a new install's `cal.txt` has `Vg0`/`Vgm` and none of the obsolete grid keys. |
 | `tests/test_plot_pens.py` | Through the test hook: a three-curve sweep with the style sheet missing runs to the end without crashing (3.01: SIGFPE on the first point), and the same sweep with the style sheet. |
+| `tests/test_cal_file.py` | Through the test hook: started with exactly the `cal.txt` uTmax would write, the file is not rewritten (same inode and modification time); the tube last used (`Index`) is remembered; a `cal.txt` that differs is still rewritten. `run_sweep()` reports the file's inode and mtime before and after. |
 | `tests/test_discharge.py` | Through the test hook: End Measurement (`30`) follows the last measurement within 2 s, at the end of a sweep and after Stop (`StopAfter`); 3.01 sent it only with the 20 s heartbeat. |
 | `tests/test_neg_rail.py` + `tests/cpp/test_neg_rail.cpp` | The negative-rail reading: C++ checks of `src/neg_rail.h` against Dekker's formulas (uTracer6 −85 V reads n = 600; uTracer3 V = 0.12 n − 117.5), and whole sweeps where uTmax must report −85 V (uTracer6) and −40 V (uTracer3) from the simulator. |
 | `tests/test_utmax_smoke.py` | Runs the built program with no window against the simulator and checks what it sends, on a uTracer6 with and without the positive-grid board. |
@@ -322,7 +327,8 @@ where they exist. The most serious:
   (`src/plot_pens.h`).
 - ~~**Discharge waits up to 20 s** after a sweep~~ **fixed 2026-11-20**: `30` is
   sent as soon as `End()` finishes (section 3.3).
-- `cal.txt` rewritten on every start; `~/uTmax_files` not created; `Style.qss` and
+- ~~`cal.txt` rewritten on every start~~ **fixed 2026-11-20** (written only when
+  changed, and safely); `~/uTmax_files` not created; `Style.qss` and
   the log read and written in the current folder.
 
 ## 12. Glossary
