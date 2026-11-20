@@ -166,10 +166,11 @@ class UTracer:
     def measure(self):
         """One pulse: solve the load's currents, then encode the 38-char reply."""
         p = self.p
-        # The cathode sits at the supply voltage, so the tube sees the reservoir
-        # voltage minus the supply, minus the drops in the HV switch and sense resistor.
-        head_a = self.va_res - p.supply_v - p.v_drop_switch + p.v_drop_diode
-        head_s = self.vs_res - p.supply_v - p.v_drop_switch + p.v_drop_diode
+        # On the uTracer3/6 the cathode sits at the supply voltage (on the NXT at
+        # ground), so the tube sees the reservoir voltage minus that, minus the drops
+        # in the HV switch and sense resistor.
+        head_a = self.va_res - p.cathode_volts() - p.v_drop_switch + p.v_drop_diode
+        head_s = self.vs_res - p.cathode_volts() - p.v_drop_switch + p.v_drop_diode
         ia = is_ = 0.0
         for _ in range(60):                      # fixed-point solve for the sense drop
             va_t = max(head_a - ia * p.r_sense_a, 0.0)
@@ -178,6 +179,13 @@ class UTracer:
             if abs(na - ia) < 1e-9 and abs(ns - is_) < 1e-9:
                 break
             ia, is_ = 0.5 * (ia + na), 0.5 * (is_ + ns)
+
+        ia_tube, is_tube = ia, is_
+        if p.min_load_ohm:
+            # The fixed minimum load sits across the output, so its current passes the
+            # sense resistor as well; Dekker's program subtracts V/1M (fig. 8.11).
+            ia += max(head_a - ia * p.r_sense_a, 0.0) / p.min_load_ohm
+            is_ += max(head_s - is_ * p.r_sense_s, 0.0) / p.min_load_ohm
 
         status = "90" if self.grid_board else "10"
         tripped = (ia > self.current_limit_amps(p.r_sense_a)
@@ -199,7 +207,7 @@ class UTracer:
         if tripped:                              # the pulse is cut short; currents meaningless
             ia_code = is_code = ia_raw = is_raw = 0
         reply = self.format_reply(status, ia_code, ia_raw, is_code, is_raw, ga, gs)
-        meas = {"Ia_mA": round(ia * 1000, 4), "Is_mA": round(is_ * 1000, 4),
+        meas = {"Ia_mA": round(ia_tube * 1000, 4), "Is_mA": round(is_tube * 1000, 4),
                 "Va_tube_V": round(max(head_a - ia * p.r_sense_a, 0), 2),
                 "gain_a": PGA_GAINS[ga], "gain_s": PGA_GAINS[gs], "averaging": n_avg,
                 "status": status}
@@ -241,6 +249,8 @@ def serve(args):
     profile = Profile.find(args.profile)
     if args.supply_volts is not None:
         profile.supply_v = args.supply_volts      # a weak or sagging power brick
+    if args.grid_board and not profile.grid_board_possible:
+        raise SystemExit(f"--grid-board: the {profile.name} has no positive-grid extension board")
     load = loads.from_spec(args.load)
     faults = {"no_reply_after": args.no_reply_after, "garble_every": args.garble_every,
               "trip": args.trip}

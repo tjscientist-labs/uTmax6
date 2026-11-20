@@ -54,6 +54,14 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 ## Done
 
+- **2026-11-20** — **The uTracer NXT speaks the same protocol.** Ronald
+  Dekker's NXT log (section 8) shows the same 18-character commands and
+  38-character replies as the uTracer3, so the serial code needs no change. What
+  differs is the arithmetic: the cathode sits at ground instead of the supply,
+  the grid comes from a 12-bit converter (0 to −120 V), and the sense and divider
+  resistors are new. The software uTracer can now act as an NXT
+  (`--profile utracer_nxt`). uTmax itself does not support the NXT yet; that is
+  the next step, after one question to Dekker about the grid number.
 - **2026-11-20** — **A positive grid only with the extension board.** uTmax used
   to allow a positive grid voltage on any uTracer6, even though without Ronald
   Dekker's positive-grid board there is nowhere for it to go. The uTracer
@@ -244,7 +252,9 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 ### Other uTracers
 - [ ] Every test against the uTracer3 profile as well
-- [ ] Find out whether the uTracer NXT uses the same protocol
+- [x] **Find out whether the uTracer NXT uses the same protocol** (same strings, different conversions)
+- [x] **Simulator profile for the uTracer NXT**
+- [ ] uTmax: a uTracer NXT model (its conversions)
 - [ ] Test builds for uTracer3 owners
 
 ### Later ideas

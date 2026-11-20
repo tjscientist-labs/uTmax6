@@ -207,6 +207,78 @@ class GridBoard(unittest.TestCase):
             sim.close()
 
 
+class UTracerNXT(unittest.TestCase):
+    """The NXT profile, checked against Dekker's NXT log (uTracerNXT.html §8-9).
+
+    Same command and reply strings as the uTracer3/6; different conversions:
+    cathode at ground, 12-bit grid DAC, 14.3 ohm sense, 1 Mohm minimum load."""
+
+    def setUp(self):
+        self.p = Profile.find("utracer_nxt")
+
+    def test_hv_full_scale_is_517_V(self):
+        # Dekker §9: R64 = 9.76k with R63 = 1M limits the reservoir to 517 V at n = 1023.
+        self.assertAlmostEqual(self.p.hv_code_to_volts(1023), 517.0, delta=0.5)
+
+    def test_grid_is_12_bit_and_always_negative(self):
+        # Fig. 8.8: Vg = -(240k/10k) * 5/4095 * n, so n = 4095 is -120 V.
+        self.assertAlmostEqual(self.p.grid_code_to_volts(4095), -120.0, places=3)
+        self.assertAlmostEqual(self.p.grid_code_to_volts(round(4095 * 2 / 120)), -2.0, delta=0.02)
+        self.assertFalse(self.p.grid_board_possible)
+
+    def test_negative_rail_minus_125_V(self):
+        # Fig. 8.10: Vneg = 5 (R1+R2)/R1 (n/1023 - 1) + 5 with 4.7k / 240k.
+        n = self.p.vn_code()
+        vneg = 5 * (4.7 + 240) / 4.7 * (n / 1023 - 1) + 5
+        self.assertAlmostEqual(vneg, -125.0, delta=0.3)
+
+    def test_cathode_is_at_ground(self):
+        self.assertEqual(self.p.cathode_volts(), 0.0)
+        self.assertEqual(Profile.find("utracer6").cathode_volts(), 19.5)
+
+    def test_measure_into_10k(self):
+        # 200 V reservoir into 10k: the tube sees 200 V (no supply offset) and the
+        # sense resistor also carries 200 V / 1M through the minimum load.
+        sim = SimulatorProcess("--profile", "utracer_nxt", "--load", "r:10k")
+        try:
+            sim.send("00000000008F010808", expect_reply=False)
+            code = self.p.hv_volts_to_code(200)
+            out = sim.send(command("10", va=code), expect_reply=True)
+            reply = out[18:]
+            self.assertEqual(len(reply), 38)
+            self.assertEqual(reply[:2], "10")
+            gain = [1, 2, 5, 10, 20, 50, 100, 200][int(reply[34:36], 16)]
+            sensed_ma = int(reply[2:6], 16) / gain * (1000 * 5.0 / 1023) / self.p.r_sense_a
+            v = self.p.hv_code_to_volts(code)
+            tube_ma = v / (10000 + self.p.r_sense_a) * 1000
+            self.assertAlmostEqual(sensed_ma, tube_ma + v / 1e6 * 1000, delta=tube_ma * 0.02)
+            # Dekker's correction (fig. 8.11) brings it back to the tube current.
+            self.assertAlmostEqual(sensed_ma - v / 1e6 * 1000, tube_ma, delta=tube_ma * 0.02)
+        finally:
+            sim.close()
+
+    def test_open_output_still_reads_the_minimum_load(self):
+        # Nothing connected: the sense resistor carries only V / 1 Mohm (fig. 8.11),
+        # 0.4 mA at 400 V. The uTracer3/6 profiles have no such load and read zero.
+        sim = SimulatorProcess("--profile", "utracer_nxt", "--load", "open")
+        try:
+            sim.send("00000000008F010808", expect_reply=False)
+            code = self.p.hv_volts_to_code(400)
+            reply = sim.send(command("10", va=code), expect_reply=True)[18:]
+            gain = [1, 2, 5, 10, 20, 50, 100, 200][int(reply[34:36], 16)]
+            sensed_ma = int(reply[2:6], 16) / gain * (1000 * 5.0 / 1023) / self.p.r_sense_a
+            self.assertAlmostEqual(sensed_ma, self.p.hv_code_to_volts(code) / 1e6 * 1000, delta=0.01)
+        finally:
+            sim.close()
+
+    def test_grid_board_refused(self):
+        r = subprocess.run([sys.executable, os.path.join(SIM_DIR, "utracer_sim.py"),
+                            "--profile", "utracer_nxt", "--grid-board"],
+                           capture_output=True, text=True, timeout=10)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("no positive-grid extension board", r.stderr)
+
+
 class Faults(unittest.TestCase):
 
     def test_trip_sets_status_11(self):

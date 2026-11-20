@@ -43,6 +43,20 @@ class Profile:
         self.neg_rail_v = v["neg_rail_volts"]
         self.grid_bits = v["grid_dac_bits"]               # 16 (uTracer6) or 12/10 (uTracer3)
         self.grid_full_scale_v = v["grid_full_scale_volts"]
+        # How the grid number sits in the 16-bit command word:
+        #   "sign_magnitude"  uTracer6: bits 0-14 magnitude, bit 15 = positive grid
+        #   "utmax_packed"    uTracer3 with Nick Barton's 12-bit firmware
+        #   "plain"           uTracer NXT: the 12-bit DAC number as it is (TO VERIFY)
+        self.grid_word = v.get("grid_word_format",
+                               "sign_magnitude" if self.grid_bits == 16 else "utmax_packed")
+        # uTracer3 and uTracer6 put the cathode at the supply voltage; the NXT puts
+        # it at ground (Dekker, uTracerNXT.html §6).
+        self.cathode_at_supply = v.get("cathode_at_supply", True)
+        # The NXT has a fixed minimum load (1 Mohm) on each output so the reservoir
+        # discharges; its current flows through the sense resistor too.
+        self.min_load_ohm = v.get("min_load_ohm")
+        # Dekker's positive-grid extension board exists for the uTracer6 only.
+        self.grid_board_possible = v.get("grid_board_possible", self.grid_word == "sign_magnitude")
         self.v_drop_diode = v.get("cathode_diode_drop_volts", 0.0)
         self.v_drop_switch = v.get("hv_switch_drop_volts", 0.0)
         self.max_hv = v["max_hv_volts"]
@@ -83,14 +97,22 @@ class Profile:
     # ---- grid -------------------------------------------------------------------
     def grid_code_to_volts(self, word):
         """Grid volts for the 16-bit word in a command (negative = more bias)."""
-        if self.grid_bits == 16:
+        if self.grid_word == "sign_magnitude":
             # uTracer6 (Dekker, tubetester6.html §9): bits 0-14 are the magnitude at
             # 100 V full scale; bit 15 set means a POSITIVE grid (extension board only).
             magnitude = (word & 0x7FFF) * self.grid_full_scale_v / 32767.0
             return magnitude if word & 0x8000 else -magnitude
+        if self.grid_word == "plain":
+            # uTracer NXT (Dekker, uTracerNXT.html §8, fig. 8.8): 12-bit DAC, always
+            # negative, Vg = -(R2/R1) * 5/4095 * n. The word layout is our reading.
+            return -(word & 0xFFF) * self.grid_full_scale_v / 4095.0
         # uTracer3: 12-bit PWM packed as uTmax does it (low 2 bits in bits 14-15).
         g = ((word & 0x3FF) << 2) | ((word >> 14) & 0x3)
         return -g * self.grid_full_scale_v / 4096.0
+
+    def cathode_volts(self):
+        """Cathode potential to ground: the supply (uTracer3/6) or 0 V (NXT)."""
+        return self.supply_v if self.cathode_at_supply else 0.0
 
     # ---- heater -----------------------------------------------------------------
     def heater_code_to_volts(self, word):

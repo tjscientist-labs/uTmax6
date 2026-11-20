@@ -1,0 +1,25 @@
+{
+  "name": "utracer_nxt",
+  "notes": "Ronald Dekker's uTracer NXT (500 V / 350 mA class). Values from Dekker's NXT log (dos4ever.com/uTracerlogNXT/uTracerNXT.html), read 2026-11-20: section 8 (protocol, figs 8.1-8.12), section 9 (ranges), section 6 (cathode at ground). The log is a design diary and some values change between sections; each entry says which one was used. The command and result strings have the same layout as the uTracer3 (fig. 8.1: 18 characters; the text's '28 characters' is a typo). Nothing here has been checked on an NXT.",
+  "constants": {
+    "hv_divider_top_ohm":        {"value": 1000000, "source": "Dekker NXT §9: R63 = 1M (raised from the uTracer3's 470k); the GUI lets it be calibrated 900k-1.1M"},
+    "hv_divider_bottom_ohm":     {"value": 9760,    "source": "Dekker NXT §9: R64 = 9.76k, so n = 1023 gives 517 V"},
+    "anode_sense_ohm":           {"value": 14.3,    "source": "Dekker NXT §9: default Rs = 14.3 ohm, 350 mA range (user may parallel Rca)"},
+    "screen_sense_ohm":          {"value": 14.3,    "source": "Dekker NXT §9"},
+    "supply_divider_top_ohm":    {"value": 10000,   "source": "Dekker NXT §8, fig. 8.7: R2 = 10k"},
+    "supply_divider_bottom_ohm": {"value": 1000,    "source": "Dekker NXT §8, fig. 8.7: R1 = 1k"},
+    "neg_divider_top_ohm":       {"value": 240000,  "source": "Dekker NXT §8, fig. 8.10: R2 = 240k from the rail, R1 to +5 V"},
+    "neg_divider_bottom_ohm":    {"value": 4700,    "source": "Dekker NXT §8: R1 = 4.7k"},
+    "supply_volts":              {"value": 19.5,    "source": "Dekker NXT §5: LEDs fed 'from the +19.5 V supply'"},
+    "neg_rail_volts":            {"value": -125.0,  "source": "Dekker NXT §8: firmware sets the negative boost converter to -125 V. (§2 and §5 say -105 V; §10 -145 V for the -140 V grid option.)"},
+    "grid_dac_bits":             {"value": 12,      "source": "Dekker NXT §8, fig. 8.8: MCP4921 12-bit DAC, Vg = -(R2/R1) 5/4095 n"},
+    "grid_word_format":          {"value": "plain", "source": "TO VERIFY with Dekker. Fig. 8.1 shows a 4-hex-digit grid word; the text says data words are 10 bits, which cannot hold the 12-bit DAC number. Assumed: n in bits 0-11, upper bits 0."},
+    "grid_full_scale_volts":     {"value": 120,     "source": "Dekker NXT §8 and the My-uTracer section: R2 = 240k, R1 = 10k, gain 24, 0 to -120 V. (§9 and the calibration form say 200k / -100 V; §10 280k / -140 V.)"},
+    "cathode_at_supply":         {"value": false,   "source": "Dekker NXT §6: 'in the uTracerNXT the cathode is referenced to ground instead of to the positive power supply voltage'"},
+    "min_load_ohm":              {"value": 1000000, "source": "Dekker NXT §8, fig. 8.11: 1 Mohm minimum load on each output; the GUI subtracts V/1M from the measured current"},
+    "grid_board_possible":       {"value": false,   "source": "Dekker NXT §8: 'The control grid voltage is always negative'"},
+    "cathode_diode_drop_volts":  {"value": 0.0,     "source": "Not in Dekker's NXT formulas: V = V_HV - I Rs (fig. 8.12)"},
+    "hv_switch_drop_volts":      {"value": 0.0,     "source": "Not in Dekker's NXT formulas"},
+    "max_hv_volts":              {"value": 500,     "source": "Dekker NXT §9: default range 500 V"}
+  }
+}

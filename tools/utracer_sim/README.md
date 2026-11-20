@@ -49,7 +49,7 @@ Stop it with Ctrl-C.
 
 | Option | Meaning |
 |---|---|
-| `--profile utracer6` | Which hardware to model (`utracer6` or `utracer3`; files in `profiles/`). |
+| `--profile utracer6` | Which hardware to model (`utracer6`, `utracer3` or `utracer_nxt`; files in `profiles/`). |
 | `--load SPEC` | The device under test, see below. Default `r:10k`. |
 | `--link PATH` | Where to put the serial port. Default `/tmp/utracer-sim`. |
 | `--log FILE` | Append one JSON line per command. |
@@ -122,7 +122,11 @@ protocol description (it shows that uTmax's default anode divider reads about
 2.4 % low before calibration), the uTracer6 profile from his uTracer6
 construction log (1 MΩ / 4.7 kΩ dividers, 4.7 Ω sense resistors, 16-bit
 sign-and-magnitude grid word, and the −85 V rail through 200 kΩ / 4.7 kΩ as the
-negative rail in the reply).
+negative rail in the reply), and the uTracer NXT profile from his NXT log §8–9
+(cathode at ground rather than at the supply, 9.76 kΩ / 1 MΩ divider, 14.3 Ω sense
+resistors, 12-bit grid DAC to −120 V, −125 V rail, and the 1 MΩ minimum load that
+the sense resistor also carries). The NXT grid word layout is our reading and is
+marked TO VERIFY in the profile.
 
 ## Tests
 

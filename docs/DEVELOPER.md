@@ -354,7 +354,12 @@ Read [`CONTRIBUTING.md`](../CONTRIBUTING.md) first. The short version:
 - **uTracer3 with Nick Barton's chip:** `Firmware` ≥ 200 in `cal.txt`. Keep the code
   paths; we cannot test them.
 - **uTracer6:** `uTracer6=1`. The main target.
-- **uTracer NXT:** not yet known whether it shares the protocol.
+- **uTracer NXT:**: checked 2026-11-20 against Dekker's NXT log §8. Same command and reply strings
+  as the uTracer3 (18 and 38 characters, commands 00/10/20/30/40/50, status 10H/11H), but different
+  conversions: cathode at ground, 12-bit grid DAC (0 to −120 V), 14.3 Ω sense resistors, 9.76 kΩ / 1 MΩ
+  divider (517 V at full scale), −125 V rail via 240 kΩ / 4.7 kΩ, a 1 MΩ minimum load to subtract. uTmax
+  needs a third model for it. Simulator profile `utracer_nxt`; how the 12-bit grid number sits in its word
+  is to be confirmed with Dekker.
 
 ## 11. Known problems
 
