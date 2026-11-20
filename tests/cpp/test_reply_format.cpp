@@ -5,6 +5,7 @@
 // Exit status 0 = all passed.
 #include "../../src/reply_format.h"
 #include <cstdio>
+#include <string>
 
 static int failures = 0;
 
@@ -38,6 +39,30 @@ int main() {
     check(!statusIsCurrentLimit(0x90), "90H is not a current limit");
     check(statusIsCurrentLimit(0x91), "91H is a current limit (3.01 missed this)");
     check(!statusIsCurrentLimit(-1), "unreadable is not a current limit");
+
+    // checkReply(): the whole result string (uTmax6)
+    const std::string fields = "01A3002F00000000014201300160025800";   // 8 words + gain_a
+    const std::string ok38 = "10" + fields + "02";                       // gain_s 02
+    check(ok38.size() == 38, "sample reply is 38 characters");
+    check(checkReply(ok38, true) == ReplyProblem::None, "a normal reply is usable");
+    check(checkReply("11" + fields + "02", true) == ReplyProblem::None, "current limit 11 is usable");
+    check(checkReply("90" + fields + "02" + "0000", true) == ReplyProblem::None,
+          "grid board: 42 characters with status 90");
+    check(checkReply("90" + fields + "02", true) == ReplyProblem::Length,
+          "status 90 but only 38 characters");
+    check(checkReply("10" + fields + "02" + "0000", true) == ReplyProblem::Length,
+          "status 10 but 42 characters");
+    std::string garbled = ok38; garbled[10] = 'Z'; garbled[11] = 'Z';
+    check(checkReply(garbled, true) == ReplyProblem::NotHex, "ZZ in a field (3.01 read it as 0)");
+    std::string space = ok38; space[20] = '-';
+    check(checkReply(space, true) == ReplyProblem::NotHex, "a minus sign");
+    check(checkReply("12" + fields + "02", true) == ReplyProblem::Status, "status 12, Dekker firmware");
+    check(checkReply("12" + fields + "02", false) == ReplyProblem::None,
+          "status 12 allowed with other firmware");
+    check(checkReply("10" + fields.substr(0, 32) + "08" + "02", true) == ReplyProblem::Gain,
+          "anode gain code 8 (3.01 indexed an 8-entry table with it)");
+    check(checkReply("10" + fields + "0A", true) == ReplyProblem::Gain, "screen gain code 0A");
+    check(checkReply("", true) == ReplyProblem::Length, "empty");
 
     if (failures == 0) std::printf("all reply-format checks passed\n");
     return failures == 0 ? 0 : 1;

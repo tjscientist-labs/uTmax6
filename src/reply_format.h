@@ -31,6 +31,8 @@
 #ifndef REPLY_FORMAT_H
 #define REPLY_FORMAT_H
 
+#include <string>
+
 constexpr int RESULT_LEN = 38;          // result string, standard uTracer
 constexpr int RESULT_LEN_GRID_BOARD = 42; // with the positive-grid extension board
 
@@ -72,6 +74,45 @@ inline bool statusIsCurrentLimit(int status)
 inline int resultLength(int status)
 {
     return statusHasGridBoard(status) ? RESULT_LEN_GRID_BOARD : RESULT_LEN;
+}
+
+// uTmax6: is a result string (after the echo) one uTmax can use? 3.01 read every
+// field with toInt(), so a character that wasn't hex silently became 0 and the
+// point was stored, and it used the two gain codes (characters 34-37) to index
+// an 8-entry table without checking them. Checked here:
+//   - 38 characters, or 42 when the status says the grid board is fitted
+//   - every character a hex digit
+//   - with Dekker's firmware (knownStatusOnly): status 10H or 11H, bit 7 aside
+//   - both gain codes 0-7
+enum class ReplyProblem { None, Length, NotHex, Status, Gain };
+
+inline const char *replyProblemText(ReplyProblem p)
+{
+    switch (p) {
+    case ReplyProblem::None:   return "OK";
+    case ReplyProblem::Length: return "wrong length";
+    case ReplyProblem::NotHex: return "a character that is not hex";
+    case ReplyProblem::Status: return "unknown status byte";
+    case ReplyProblem::Gain:   return "gain code out of range";
+    }
+    return "?";
+}
+
+inline ReplyProblem checkReply(const std::string &r, bool knownStatusOnly)
+{
+    for (char ch : r)
+        if (hexDigit(ch) < 0) return ReplyProblem::NotHex;
+    if (r.size() < 2) return ReplyProblem::Length;
+    const int status = replyStatus(r[0], r[1]);
+    if (int(r.size()) != resultLength(status)) return ReplyProblem::Length;
+    if (knownStatusOnly) {
+        const int s = status & ~STATUS_GRID_BOARD;
+        if (s != 0x10 && s != STATUS_CURRENT_LIMIT) return ReplyProblem::Status;
+    }
+    const int ga = hexDigit(r[34]) * 16 + hexDigit(r[35]);
+    const int gs = hexDigit(r[36]) * 16 + hexDigit(r[37]);
+    if (ga > 7 || gs > 7) return ReplyProblem::Gain;
+    return ReplyProblem::None;
 }
 
 #endif // REPLY_FORMAT_H

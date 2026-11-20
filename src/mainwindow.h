@@ -264,6 +264,7 @@ private:
     void HeatOff_f();
     void Discharge_Done();
     bool commandAllowed();
+    void abortAndDischarge(const QString &why);
     void sendSer();
     void StoreData(bool);
     void SetUpPlot();

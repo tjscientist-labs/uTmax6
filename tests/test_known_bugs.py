@@ -7,6 +7,8 @@ Open: none recorded as a test yet. The list of known problems is in
 docs/PLAN.md (stage 4) and docs/DEVELOPER.md (section 11).
 
 Fixed:
+- 2026-11-20  A non-hex character in a reply was read as 0 and the point
+              stored; gain codes unchecked. Now tests/test_bad_reply.py.
 - 2026-11-20  A wrong echo left the reservoirs charged (idle, no 30). Now
               tests/test_bad_echo.py.
 - 2026-11-20  Commands sent unchecked; a heater set above the supply sent a word

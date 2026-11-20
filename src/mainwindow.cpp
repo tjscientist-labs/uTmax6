@@ -951,35 +951,23 @@ void MainWindow::RxData()
         // on something else. Stop and send End Measurement (30) to discharge the
         // reservoirs and set the grid to 0 V; 3.01 went idle with them as they were.
         // If the 30 itself comes back wrong, go idle as before (no retry loop).
-        const QString why = tr("Unexpected response from Tracer (the echo did not match "
-                               "the command). Sweep stopped");
-        response.clear();
-        stop = false;
-        startSweep = 0;
-        heat = 0;
-        ui->HeaterProg->setValue(0);
-        if (status != discharge) {
-            afterDischargeMessage = why + tr(", reservoirs discharged. If it happens again, power cycle the uTracer.");
-            ui->statusBar->showMessage(afterDischargeMessage);
-            cmd = TxString = "300000000000000000";
-            rxLen = TxString.length();
-            status = discharge;
-            timeout = PING_TIMEOUT;
-            timer_on = true;
-            portInUse->write(TxString);
-            return;
-        }
-        ui->statusBar->showMessage(why + tr("; the discharge command was not echoed correctly either. "
-                                            "Power cycle the uTracer and restart."));
-        afterDischargeMessage.clear();
-        RecallCtlState();
-        cmd.clear();
-        rxLen = 0;
-        timer_on= false;
-        status = Idle;
+        abortAndDischarge(tr("Unexpected response from Tracer (the echo did not match the "
+                             "command). Sweep stopped, reservoirs discharged. If it happens "
+                             "again, power cycle the uTracer."));
         return;
     }
     if (RxCode==RXCONTINUE) return;
+    // uTmax6: a result string (after 10 or 50) is checked before anything reads
+    // it (checkReply(), reply_format.h); 3.01 turned a bad character into 0.
+    if (response.size() >= RESULT_LEN && (TxString.startsWith("10") || TxString.startsWith("50"))) {
+        const ReplyProblem rp = checkReply(response.toStdString(), calData.Firmware == 100);
+        if (rp != ReplyProblem::None) {
+            abortAndDischarge(tr("Reply from Tracer not usable, %1: %2. Sweep stopped, "
+                                 "reservoirs discharged.")
+                                  .arg(replyProblemText(rp), QString::fromLatin1(response)));
+            return;
+        }
+    }
     rxLen=0;
     cmd.clear();
 
@@ -1868,11 +1856,33 @@ bool MainWindow::commandAllowed()
 
     const QString why = tr("Command refused, %1: %2. Sweep stopped, reservoirs discharged.")
                             .arg(problemText(p), QString::fromLatin1(TxString));
+    abortAndDischarge(why);
+    return false;
+}
+
+// uTmax6: stop whatever is running and send End Measurement (30), which
+// discharges the reservoirs and sets the grid to 0 V; `why` stays on the status
+// bar after the 30 is echoed (Discharge_Done()). Used for a refused command, a
+// wrong echo and an unusable reply. If the 30 itself was the problem, go idle.
+void MainWindow::abortAndDischarge(const QString &why)
+{
     qWarning() << why;
+    response.clear();
     stop = false;
     startSweep = 0;
-    ui->HeaterProg->setValue(0);
     heat = 0;
+    ui->HeaterProg->setValue(0);
+    if (status == discharge) {
+        ui->statusBar->showMessage(why + tr(" The discharge command failed too: power cycle "
+                                            "the uTracer and restart."));
+        afterDischargeMessage.clear();
+        RecallCtlState();
+        cmd.clear();
+        rxLen = 0;
+        timer_on = false;
+        status = Idle;
+        return;
+    }
     afterDischargeMessage = why;
     ui->statusBar->showMessage(why);
     cmd = TxString = "300000000000000000";
@@ -1881,7 +1891,6 @@ bool MainWindow::commandAllowed()
     timeout = PING_TIMEOUT;
     timer_on = true;
     portInUse->write(TxString);
-    return false;
 }
 
 /*int MainWindow::DWait(float v) {

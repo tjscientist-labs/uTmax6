@@ -8,6 +8,16 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **New: replies are checked before they are used.** 3.01 read each field of a
+  result string with `toInt()`, so a character that wasn't hex became 0 and the
+  point was stored, and it indexed an 8-entry gain table with the reply's gain
+  codes unchecked. New `checkReply()` in `src/reply_format.h`: length as the
+  status says, all hex, status `10`/`11` (bit 7 aside) with Dekker's firmware,
+  gain codes 0-7. `RxData()` in `src/mainwindow.cpp` checks every reply to `10`
+  and `50`; one that fails stops the sweep with End Measurement (`30`) and a
+  message. The three stop-and-discharge paths (refused command, wrong echo,
+  unusable reply) now share `abortAndDischarge()` (`src/mainwindow.h`). Tests:
+  `tests/test_bad_reply.py`; cases added to `tests/cpp/test_reply_format.cpp`.
 - **New: a wrong echo stops the sweep and discharges.** In `RxData()`
   (`src/mainwindow.cpp`) an echo that doesn't match the command (`RXINVALID`)
   made 3.01 go idle with the reservoirs as they were. uTmax6 sends End

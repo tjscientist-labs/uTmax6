@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 113
+put the old code back in a scratch copy and check that the test fails. All 118
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -49,10 +49,18 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 | A new install's settings named the serial port **`COM1` even on Linux** and a **style sheet that doesn't exist**; the themes' images only showed when uTmax was started from one particular folder | Reading the code, then a fresh home folder | **Fixed** |
 | A tube library with **no usable tube** (empty, header only, damaged) **crashed uTmax at start-up**, every time, until the file was fixed by hand | Checking an unchecked file read in the small-fixes list | **Fixed** |
 | A **heater setting above the supply voltage** went out as a heater word beyond its 10-bit range (an 18 V heater on a weak 15 V supply: `5C1`) | Writing the command checker; the simulator's new `--supply-volts` | **Stopped** by the new command check |
+| A reply with a **bad character was stored as a real measurement** (the character read as 0), and the reply's gain codes indexed a table unchecked | The simulator's garbled-reply fault | **Fixed** |
 | uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
 
 ## Done
 
+- **2026-11-20** — **Replies are checked before they are used.** A character
+  in a reply that wasn't a hex digit used to be read as 0, and that point was
+  stored and plotted as if it had been measured. Now every reply is checked
+  first: length, hex, status and gain codes. One that fails stops the sweep,
+  discharges and says why. With the command check and the echo check, all
+  three protocol checks in the plan are in, apart from comparing the measured
+  reservoir voltage with the request, which waits for real hardware.
 - **2026-11-20** — **A wrong echo now discharges.** The uTracer echoes every
   character, and that echo is the protocol's only check, but it arrives after
   the uTracer has already acted. When it didn't match, uTmax used to stop and
@@ -189,7 +197,8 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [ ] Allow a positive grid only when the extension board is fitted
 - [x] **Check every command before sending**
 - [x] **Treat a bad echo as an error and discharge**
-- [ ] Check replies (hex, status byte)
+- [x] **Check replies (hex, status byte, gain codes)**
+- [ ] Check the measured reservoir voltage against the request (needs hardware readings for the tolerance)
 - [x] **Fix the 425 V limit on delayed sweeps**
 - [x] **Initialise every calibration value; write `Vg0`/`Vgm` in a new `cal.txt`**
 - [x] **Don't crash when the style sheet is missing**
