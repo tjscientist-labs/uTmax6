@@ -1,14 +1,24 @@
 #include <QtWidgets/QApplication>
 #include "mainwindow.h"
+#include "app_paths.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    QFile stylesheet("Style.qss");
-    stylesheet.open(QFile::ReadOnly);
-    QString setSheet = QLatin1String(stylesheet.readAll());
-    a.setStyleSheet(setSheet);
+    // uTmax6: make ~/uTmax_files and give it the built-in tube library if it has
+    // none (3.01 asked for data.csv in a file dialog and never saved cal.txt).
+    // The style sheet is looked for there first (3.01: the current folder only).
+    if (!ensureUtmaxDir())
+        qWarning() << "Cannot create" << utmaxDir() << "- settings will not be saved";
+    else if (!installDefaultFile(":/data.csv", "data.csv"))
+        qWarning() << "Cannot copy the tube library into" << utmaxDir();
+    QString sheetPath = findStyleSheet();
+    if (!sheetPath.isEmpty()) {
+        QFile stylesheet(sheetPath);
+        if (stylesheet.open(QFile::ReadOnly))
+            a.setStyleSheet(QString::fromUtf8(stylesheet.readAll()));
+    }
 
     MainWindow w;
     w.show();

@@ -55,7 +55,7 @@ end-to-end test runs it.
 
 | File | Class | What it does |
 |---|---|---|
-| `main.cpp` | — | Loads `Style.qss` from the current folder, opens the main window. |
+| `main.cpp` | — | Creates `~/uTmax_files` and installs the built-in tube library if missing, loads `Style.qss` (`src/app_paths.h`), opens the main window. |
 | `mainwindow.cpp` (≈4,000 lines) | `MainWindow` | Nearly everything: the serial link, the state machine, sweeps, conversions, calibration file, tube library, saving data. Plan stage 5 splits it. |
 | `plotTabWidget.cpp` | `PlotTabWidget` | One plot tab: draws curves with QCustomPlot. |
 | `dr_optimize.cpp` | `dr_optimize` | Fits tube models (diode, triode, Koren pentode and others) to measured points with GSL's Nelder-Mead simplex (`gsl_multimin_fminimizer_nmsimplex`, around line 860). |
@@ -198,7 +198,10 @@ the sliders or the wizard.
 
 ## 6. Files on disk
 
-Everything lives in `~/uTmax_files/` (the folder isn't created by uTmax 3.01):
+Everything lives in `~/uTmax_files/` (`utmaxDir()`, `src/app_paths.h`). uTmax6
+creates the folder at start-up if it is missing (3.01 didn't), and copies in the
+tube library built into the program (`src/utmax6.qrc`, from `src/data.csv`) if
+there is none; an existing one is never replaced.
 
 - **`cal.txt`**: `key=value` lines. `COM` (serial port), the calibration factors,
   `RaVal`, `VaMax`, `IaRsense`, `IsRsense`, `VgMax`, `Firmware`, `uTracer6`,
@@ -214,8 +217,13 @@ Everything lives in `~/uTmax_files/` (the folder isn't created by uTmax 3.01):
   (`Vca` … `Power`), emission test (`EmmVa`, `EmmVs`, `EmmVg`), transconductance
   (`gm1Typ`, `gm1Del`, `gm2Typ`, `gm2Del`), heater time, time, uses, `Va=Vs`. The
   first line is a header and is skipped on reading.
-- **`Style.qss`**: read from the **current folder** at start-up (section 11).
-- **Log file** (when firmware debugging is on): also in the current folder.
+- **`Style.qss`**: the application style sheet, read at start-up from
+  `~/uTmax_files`, else the program's folder, else the current folder (where
+  3.01 looked). The repository's copy is empty; the themes chosen in Options
+  (`Style=` in `cal.txt`) are separate.
+- **Log files** (`log.txt` when firmware debugging is on; `utmax_log.txt` when
+  built with `LOGGING`): in `~/uTmax_files` (3.01: the home folder and the
+  current folder).
 
 ## 7. The software uTracer
 
@@ -252,6 +260,7 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_sweeps.py` (+ helper `tests/utmax_run.py`) | Whole sweeps of the real program against the simulator through the test hook: a uTracer6 sweep into 100 kΩ (voltages received, currents reported, heater on then off), a delayed sweep to 600 V (the 425 V fix), the same sweep with the positive-grid board, and a sweep above `VaMax` refused with an entry error. |
 | `tests/test_calibration_defaults.py` | Through the test hook: a `cal.txt` with no calibration factors, and one with unreadable ones, still sweep correctly (anode and grid voltages, currents) and are written back with the defaults; a new install's `cal.txt` has `Vg0`/`Vgm` and none of the obsolete grid keys. |
 | `tests/test_plot_pens.py` | Through the test hook: a three-curve sweep with the style sheet missing runs to the end without crashing (3.01: SIGFPE on the first point), and the same sweep with the style sheet. |
+| `tests/test_app_paths.py` | Through the test hook: on a home folder with no `uTmax_files`, uTmax creates it with `cal.txt` and the full tube library (3.01 hangs in a file dialog); started from another folder it still uses `~/uTmax_files/Style.qss`; an existing tube library is kept. `run_sweep(fresh=True, start_in=..., app_style=...)`. |
 | `tests/test_cal_file.py` | Through the test hook: started with exactly the `cal.txt` uTmax would write, the file is not rewritten (same inode and modification time); the tube last used (`Index`) is remembered; a `cal.txt` that differs is still rewritten. `run_sweep()` reports the file's inode and mtime before and after. |
 | `tests/test_discharge.py` | Through the test hook: End Measurement (`30`) follows the last measurement within 2 s, at the end of a sweep and after Stop (`StopAfter`); 3.01 sent it only with the 20 s heartbeat. |
 | `tests/test_neg_rail.py` + `tests/cpp/test_neg_rail.cpp` | The negative-rail reading: C++ checks of `src/neg_rail.h` against Dekker's formulas (uTracer6 −85 V reads n = 600; uTracer3 V = 0.12 n − 117.5), and whole sweeps where uTmax must report −85 V (uTracer6) and −40 V (uTracer3) from the simulator. |
@@ -328,8 +337,8 @@ where they exist. The most serious:
 - ~~**Discharge waits up to 20 s** after a sweep~~ **fixed 2026-11-20**: `30` is
   sent as soon as `End()` finishes (section 3.3).
 - ~~`cal.txt` rewritten on every start~~ **fixed 2026-11-20** (written only when
-  changed, and safely); `~/uTmax_files` not created; `Style.qss` and
-  the log read and written in the current folder.
+  changed, and safely); ~~`~/uTmax_files` not created; `Style.qss` and the log
+  in the current folder~~ **fixed 2026-11-20** (`src/app_paths.h`).
 
 ## 12. Glossary
 

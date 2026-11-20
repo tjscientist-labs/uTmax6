@@ -1,0 +1,8 @@
+<!DOCTYPE RCC>
+<!-- uTmax6: files built into the program. data.csv is copied to ~/uTmax_files
+     on first start if there is none there (app_paths.h). -->
+<RCC version="1.0">
+<qresource>
+    <file>data.csv</file>
+</qresource>
+</RCC>

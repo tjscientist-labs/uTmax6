@@ -32,7 +32,7 @@ CONFIG(release, debug|release) {
 # they are kept in git history (first commit).
 LIBS += -lgsl -lgslcblas
 
-RESOURCES +=
+RESOURCES += utmax6.qrc
 
 SOURCES += main.cpp\
     test_hook.cpp \
@@ -53,6 +53,7 @@ HEADERS  += mainwindow.h \
     neg_rail.h \
     plot_pens.h \
     cal_file.h \
+    app_paths.h \
     cal_dialog.h \
     cal_wizard.h \
     debug_dialog.h \

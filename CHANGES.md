@@ -8,6 +8,19 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **Fixed: `~/uTmax_files` is created, and the style sheet and logs live there.**
+  3.01 never created the folder: on a new machine it opened a file dialog asking
+  for `data.csv`, and `cal.txt` was never written, so every setting was lost at
+  exit. It read `Style.qss` from the folder it was started in and wrote its logs
+  to the home and current folders. New `src/app_paths.h`: `src/main.cpp` creates
+  the folder, copies in the tube library built into the program (new
+  `src/utmax6.qrc` with `src/data.csv`, added to `RESOURCES` in `src/uTmax.pro`)
+  if there is none, and loads `Style.qss` from the folder first, then the
+  program's folder, then the current one. `src/mainwindow.cpp` uses the same
+  folder for its paths and both log files. The test hook reports the style sheet
+  in use (`src/test_hook.cpp`). Tests: `tests/test_app_paths.py`;
+  `tests/utmax_run.py` gained `fresh`, `start_in` and `app_style`. After Dean
+  Jenkins' fork, which checked for the folder.
 - **Fixed: `cal.txt` is written only when it changes, and safely.** 3.01 rewrote
   `cal.txt` whenever the serial port opened (every start and every successful
   reconnect), on every exit, and after plot and pen updates, changed or not:

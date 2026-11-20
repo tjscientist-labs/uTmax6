@@ -32,6 +32,7 @@
 #include "neg_rail.h"
 #include "plot_pens.h"
 #include "cal_file.h"
+#include "app_paths.h"
 #include <QFile>
 #include <QString>
 #include <QDebug>
@@ -66,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     if (COMDEBUG || LOGGING) {
-        logFile.setFileName("utmax_log.txt");
+        logFile.setFileName(utmaxDir() + "utmax_log.txt");   // uTmax6: was the current folder
         //logFile.open(QIODevice::Append | QIODevice::Text);
 //        logFile.open(QIODevice::Append);
         logFile.open(QIODevice::WriteOnly );
@@ -510,8 +511,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //get paths and define file names
     //appDir = QCoreApplication.applicationDirPath()
-    uTmaxDir = QDir::homePath();
-    uTmaxDir.append("/uTmax_files/");
+    uTmaxDir = utmaxDir();                  // uTmax6: app_paths.h
     dataFileName = uTmaxDir;
     dataFileName.append("data.csv");
     calFileName = uTmaxDir;
@@ -3848,8 +3848,7 @@ void MainWindow::LogFile(int arg1) {
     {
         fwdebug=true;
         enableDebugMsg=true;
-        QString dataFileName = QDir::homePath();
-        dataFileName.append("/log.txt");
+        QString dataFileName = utmaxDir() + "log.txt";   // uTmax6: was ~/log.txt
         logFile.setFileName(dataFileName);
         //logFile.open(QIODevice::Append);
         logFile.open(QIODevice::WriteOnly );

@@ -26,7 +26,8 @@
  *
  * Keys left out keep whatever uTmax would have shown. The report holds
  * "result" (done, never started, timeout, no port), the last negative-rail and
- * supply readings ("Vn", "Vsu", volts), every status-bar message
+ * supply readings ("Vn", "Vsu", volts), the application style sheet in use
+ * ("appStyleSheet"), every status-bar message
  * and dialog in order (dialogs are recorded and closed, so an error box cannot
  * hang a test), and every measured point from the data store.
  *
@@ -162,7 +163,8 @@ void MainWindow::testHookFinish(const QString &why)
                                   {"Ia_mA", r.Ia}, {"Is_mA", r.Is}, {"ignore", int(r.ignore)}});
     QJsonObject report{{"result", why}, {"uTracer6", options.uTracer6},
                        {"VaMax", calData.VaMax},
-                       {"Vn", adc_real.Vn}, {"Vsu", adc_real.Vsu}, {"notes", notes}, {"points", points}};
+                       {"Vn", adc_real.Vn}, {"Vsu", adc_real.Vsu},
+                       {"appStyleSheet", qApp->styleSheet()}, {"notes", notes}, {"points", points}};
     QFile out(testHook.cfg.value("out"));
     if (out.open(QIODevice::WriteOnly))
         out.write(QJsonDocument(report).toJson());

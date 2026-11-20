@@ -115,10 +115,12 @@ Each with its own test. The list so far, most serious first:
 - ~~`cal.txt` rewritten every time the port opens at start-up~~ **fixed
   2026-11-20**: written only when its text changes, through a temporary file
   (`src/cal_file.h`); the tube last used is now remembered. (Dean Jenkins.)
-- `~/uTmax_files` never checked or created; calibration silently not saved.
+- ~~`~/uTmax_files` never checked or created; calibration silently not saved~~
+  **fixed 2026-11-20**: created at start-up, with the built-in tube library.
   (Dean Jenkins.)
 - `data.csv` header writes `gm1Del` twice. (Dean Jenkins.)
-- `Style.qss` and the log file use the current folder.
+- ~~`Style.qss` and the log file use the current folder~~ **fixed 2026-11-20**:
+  both in `~/uTmax_files` (`src/app_paths.h`).
 - New `cal.txt` defaults: `VaMax=300`, `COM=COM1`.
 - Smaller items: ~~integer division in `Update_adc_scales()`~~ (fixed
   2026-11-20, `src/neg_rail.h`), a dead assignment in

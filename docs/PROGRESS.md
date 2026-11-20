@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 75
+put the old code back in a scratch copy and check that the test fails. All 82
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -45,10 +45,17 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 | **Crash on the first point of every sweep** when the style sheet can't be found (a division by zero in the plot code) | First whole sweep through the test hook | **Fixed** |
 | After a sweep finished or was stopped, the **reservoirs could stay charged for up to 20 s**: the discharge command went out only with the idle heartbeat | Comparing with Dean Jenkins' fork; confirmed from the simulator's command log | **Fixed** |
 | `cal.txt` was **rewritten at every start, reconnect and exit**, changed or not; and the **tube last used was never remembered** (it was restored before the tube list existed) | Dean Jenkins' fork; the second found by the test for the first | **Fixed** |
+| On a **new machine** uTmax never created its `~/uTmax_files` folder: it asked for the tube library in a file dialog and never saved its settings; its style sheet and logs used whatever folder it was started from | Dean Jenkins' fork; confirmed with a fresh home folder (3.01 sits in the dialog) | **Fixed** |
 | uTmax's default uTracer3 anode divider reads **2.4 % low** against Dekker's published values | Building the simulator's uTracer3 profile | Recorded; calibration absorbs it |
 
 ## Done
 
+- **2026-11-20** — **Fixed: uTmax sets itself up on a new machine.** It now
+  creates its `~/uTmax_files` folder if it is missing and puts its tube library
+  there, so a fresh install needs no copying by hand. Before, it opened a file
+  dialog asking for the tube library and never saved its settings. The style
+  sheet and the logs now live in that folder too, so it no longer matters which
+  folder uTmax is started from.
 - **2026-11-20** — **Fixed: `cal.txt` is written only when something changes.**
   uTmax rewrote its settings file every time it started, reconnected or closed,
   even when nothing had changed: needless writes to a Raspberry Pi's SD card,
@@ -155,7 +162,7 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [x] **Don't crash when the style sheet is missing**
 - [x] **Send End Measurement (discharge) on Stop and at the end of each sweep**
 - [x] **Stop rewriting `cal.txt` at every start**
-- [ ] Create `~/uTmax_files` if missing; load styles and write logs there
+- [x] **Create `~/uTmax_files` if missing; load styles and write logs there**
 - [ ] Sensible new-install defaults for Linux and the uTracer6
 - [ ] Smaller fixes (see `PLAN.md`, stage 4)
 - [ ] Check the uTracer6 conversion constants against Dekker's schematic

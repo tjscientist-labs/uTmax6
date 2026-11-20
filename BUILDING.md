@@ -52,22 +52,11 @@ the Qt and GSL DLLs next to it with `windeployqt6`.
 
 ## Files uTmax needs at run time
 
-uTmax keeps its tube library (`data.csv`) and calibration file (`cal.txt`) in a
-folder called `uTmax_files` in your home folder. It does not yet create that
-folder itself (this is on the fix list), so create it and copy in the tube
-library and style sheet once:
-
-```sh
-mkdir -p ~/uTmax_files
-cp src/data.csv src/Style.qss ~/uTmax_files/
-```
-
-uTmax 3.01 also loads `Style.qss` from the folder it is started in, so start it
-from `~/uTmax_files` for now:
-
-```sh
-cd ~/uTmax_files && /path/to/build/release/uTmax
-```
+uTmax keeps its tube library (`data.csv`), calibration file (`cal.txt`) and
+style sheet (`Style.qss`, optional) in a folder called `uTmax_files` in your home
+folder. uTmax6 creates the folder the first time it starts and puts a copy of the
+tube library there, so nothing needs copying by hand, and it can be started from
+any folder. An existing `data.csv` is never replaced.
 
 ## Automatic builds
 
