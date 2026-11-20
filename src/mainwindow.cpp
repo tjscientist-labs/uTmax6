@@ -73,7 +73,8 @@ MainWindow::MainWindow(QWidget *parent) :
         logFile.setFileName(utmaxDir() + "utmax_log.txt");   // uTmax6: was the current folder
         //logFile.open(QIODevice::Append | QIODevice::Text);
 //        logFile.open(QIODevice::Append);
-        logFile.open(QIODevice::WriteOnly );
+        if (!logFile.open(QIODevice::WriteOnly))   // uTmax6: result checked
+            qWarning() << "Cannot open" << logFile.fileName();
         QTextStream(&logFile) << "New Session\n";
     }
     fwdebug=false;
@@ -854,10 +855,11 @@ void MainWindow::readData() {
             }
         }
         else {
-            if (d.at(i)=='\r' && status!=pgm_flash) d.remove(i,0);
-            else if (d.at(i)=='\n'&& status!=pgm_flash) d.remove(i,0);
-            else if (d.at(i)==' '&& status!=pgm_flash) d.remove(i,0);
-            else RxString.append(d.at(i));
+            // uTmax6: CR, LF and spaces are dropped by not appending them. 3.01 also
+            // called d.remove(i,0) here, which removes nothing; taken out.
+            const bool skip = status != pgm_flash
+                    && (d.at(i) == '\r' || d.at(i) == '\n' || d.at(i) == ' ');
+            if (!skip) RxString.append(d.at(i));
         }
     }
 }
@@ -1225,7 +1227,9 @@ void MainWindow::Idle_f() {
     }
     if (sendPing)
     {
-        ui->statusBar->showMessage("Send Ping");
+        // uTmax6: was "Send Ping"; the heartbeat sends End Measurement (30), and
+        // Dekker's "ping" is a different command (50).
+        ui->statusBar->showMessage(tr("Idle: discharge sent"));
         cmd = TxString="300000000000000000";
         rxLen = TxString.length();
         sendPing=false;
@@ -1330,7 +1334,7 @@ void MainWindow::Idle_f() {
 void MainWindow::Wait_Ping() {
 //qDebug()<<"WaitPing";
         status=Idle;
-        ui->statusBar->showMessage(tr("Ping OK"));
+        ui->statusBar->showMessage(tr("Idle: uTracer answered"));   // uTmax6: was "Ping OK"
         timer_on=false;
         timeout = PING_TIMEOUT;
 }
@@ -2363,7 +2367,8 @@ uint MainWindow::GetVg(float v) {
         // FFFF (+100 V) with the heater word lost.
         return utracer6GridWord(V0, float(calData.VgMax));
     } else {
-        if (Vg<0) Vg=0;
+        // uTmax6: removed "if (Vg<0) Vg=0;" here: it read Vg before it was set,
+        // and the next line overwrote it anyway.
         Vg=(-4096) / float(calData.VgMax) *V0;
         g =int(round(Vg));
         if( g> 4095) g = 4095;
@@ -2399,7 +2404,8 @@ void MainWindow::ReadCalibration()
     if (! datafile.exists())
     {
         //It doesn't exist so set up default values and create a file
-        datafile.open(QIODevice::WriteOnly | QIODevice::Text);
+        if (!datafile.open(QIODevice::WriteOnly | QIODevice::Text))   // uTmax6: result checked
+            qWarning() << "Cannot create" << calFileName << "- settings will not be saved";
         QTextStream calFile(&datafile);
         // uTmax6: the first USB serial port seen (3.01: COM1, even on Linux). new_install.h
         calFile << "COM=" << defaultSerialPort() << "\n";
@@ -2433,7 +2439,8 @@ void MainWindow::ReadCalibration()
         //qDebug() << "ReadCalibration: Created new cal file";
     }
     //Open the cal.txt file
-    datafile.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!datafile.open(QIODevice::ReadOnly | QIODevice::Text))   // uTmax6: result checked
+        qWarning() << "Cannot read" << calFileName << "- using default calibration";
     QTextStream in(&datafile);
     calData.SavePath = QDir::homePath();
     // uTmax6: a value that can't be read keeps its default (3.01 turned it into 0).
@@ -2545,7 +2552,8 @@ void MainWindow::ReadDataFile()
     }
     if (dataFileName=="") QCoreApplication::quit();
     datafile.setFileName(dataFileName);
-    datafile.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!datafile.open(QIODevice::ReadOnly | QIODevice::Text))   // uTmax6: result checked
+        qWarning() << "Cannot read the tube library" << dataFileName;
     QTextStream in(&datafile);
     QString line = in.readLine();
     QStringList dataline = line.split(",");
@@ -2906,7 +2914,7 @@ bool MainWindow::SaveTubeDataFile() {
 
         out << "ID,A,G2,G1,G1b,Cathode,G3,Heater,Heater,Htr Volts,SPICE model,VaStart,VaEnd,VaStep,VsStart," <<
                "VsEnd,VsStep,VgStart,VgEnd,VgStep,Vca,Dva,Vcg2,Dvg2,Vcg,Dvg,Power,EmmVa,EmmVs,EmmVg,gm1Typ," << ""
-                "gm1Del,gm2Typ,gm1Del,HeatSecs, Time, Uses,Va=Vs\n";
+                "gm1Del,gm2Typ,gm2Del,HeatSecs, Time, Uses,Va=Vs\n";   // uTmax6: was gm1Del twice (Dean Jenkins)
         for (uint i=0; i< tubeDataVec.size(); i++) {
             out << tubeDataVec.at(i).ID << ","
                 << tubeDataVec.at(i).Anode << ","
@@ -3881,7 +3889,8 @@ void MainWindow::LogFile(int arg1) {
         QString dataFileName = utmaxDir() + "log.txt";   // uTmax6: was ~/log.txt
         logFile.setFileName(dataFileName);
         //logFile.open(QIODevice::Append);
-        logFile.open(QIODevice::WriteOnly );
+        if (!logFile.open(QIODevice::WriteOnly))   // uTmax6: result checked
+            qWarning() << "Cannot open" << logFile.fileName();
         QTextStream(&logFile) << "New Session\n";
 
     }
@@ -3947,6 +3956,7 @@ void MainWindow::Pgm_Flash() {
         checksum=0;
         fw_index=0;
         //if OK we fall through to case 1
+        [[fallthrough]];   // uTmax6: marks the deliberate fall-through for the compiler
     case 1: //pgm flash
         if (response.at(0) == 0) { //response.at(0) is always 1 after a fall thru from case 0
             ui->statusBar->showMessage("Error while programming flash");

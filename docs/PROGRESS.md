@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 100
+put the old code back in a scratch copy and check that the test fails. All 101
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -52,6 +52,11 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 ## Done
 
+- **2026-11-20** — **Small fixes.** The tube library's header line no longer
+  names one column twice (from Dean Jenkins' fork). The idle heartbeat now says
+  "Idle: discharge sent" instead of "Send Ping". Five pieces of code that read
+  unset values, did nothing, or ignored errors were tidied, with no change to
+  what uTmax does. Checking those ignored errors found the start-up crash above.
 - **2026-11-20** — **Fixed: a crash at start-up with an empty or damaged tube
   library.** uTmax picked the first tube without checking there was one, so it
   would not start at all. Now it keeps the bad file under another name,
@@ -176,7 +181,7 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [x] **Stop rewriting `cal.txt` at every start**
 - [x] **Create `~/uTmax_files` if missing; load styles and write logs there**
 - [x] **Sensible new-install defaults for Linux** (`VaMax` stays 300 V until the uTracer6 is checked)
-- [ ] Smaller fixes (see `PLAN.md`, stage 4)
+- [x] **Smaller fixes** (see `PLAN.md`, stage 4)
 - [ ] Check the uTracer6 conversion constants against Dekker's schematic
 - [ ] Move the serial protocol and conversions into their own tested classes
 - [ ] Touch-screen layout; encoder and buttons

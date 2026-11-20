@@ -118,7 +118,7 @@ Each with its own test. The list so far, most serious first:
 - ~~`~/uTmax_files` never checked or created; calibration silently not saved~~
   **fixed 2026-11-20**: created at start-up, with the built-in tube library.
   (Dean Jenkins.)
-- `data.csv` header writes `gm1Del` twice. (Dean Jenkins.)
+- ~~`data.csv` header writes `gm1Del` twice~~ **fixed 2026-11-20**. (Dean Jenkins.)
 - ~~`Style.qss` and the log file use the current folder~~ **fixed 2026-11-20**:
   both in `~/uTmax_files` (`src/app_paths.h`).
 - ~~New `cal.txt` defaults: `COM=COM1`, a style sheet that doesn't exist~~
@@ -126,10 +126,13 @@ Each with its own test. The list so far, most serious first:
   Linux), and the bundled themes installed in `~/uTmax_files/Themes`, starting on
   "Utracer Dark"; theme image paths made absolute (`src/new_install.h`).
   `VaMax=300` kept on purpose for a new install.
-- Smaller items: ~~integer division in `Update_adc_scales()`~~ (fixed
-  2026-11-20, `src/neg_rail.h`), a dead assignment in
-  `GetVg()`, no-op `d.remove(i,0)` calls in `readData()`, unchecked `QFile::open()`
-  results, an uninitialised `size`, a switch fall-through.
+- ~~Smaller items~~ **all fixed 2026-11-20**: integer division in
+  `Update_adc_scales()` (`src/neg_rail.h`); a read of an unset variable in
+  `GetVg()`; no-op `d.remove(i,0)` calls in `readData()`; unchecked
+  `QFile::open()` results (one of them hid a start-up crash with an empty tube
+  library, fixed separately); an uninitialised `size` in the optimiser's debug
+  output; a deliberate switch fall-through now marked `[[fallthrough]]`; the
+  idle heartbeat's "Send Ping" message.
 - uTracer6 conversion constants: Dekker's page confirms 1 MΩ / 4.7 kΩ dividers,
   1 kΩ / 10 kΩ supply divider and 4.7 Ω sense resistors (the simulator's profile
   now uses them). The uTracer6 has two negative rails (-15 V and -85 V); the

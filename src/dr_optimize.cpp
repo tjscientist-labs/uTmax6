@@ -834,7 +834,7 @@ void dr_optimize::OptAll(QByteArray name)
     if  (n >= num_params) {
         //Minimize Ia errors
         int max_iter=10000;
-        double size;
+        double size = 0;   // uTmax6: printed below even if the first step fails
         //init starting point and unused parameters
         for (int i=0; i <= ASUBP; i++) IaParams.o[i] = IaParams.p[i];
         QString * buf = new QString;

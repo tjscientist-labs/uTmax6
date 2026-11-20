@@ -7,6 +7,8 @@ Open: none recorded as a test yet. The list of known problems is in
 docs/PLAN.md (stage 4) and docs/DEVELOPER.md (section 11).
 
 Fixed:
+- 2026-11-20  data.csv header wrote gm1Del twice. Now HeaderWrittenCorrectly in
+              tests/test_tube_library.py.
 - 2026-11-20  Crash at start-up (std::out_of_range) with a tube library that
               has no usable tube. Now tests/test_tube_library.py.
 - 2026-11-20  New cal.txt: COM=COM1 on Linux, a style file that doesn't exist;

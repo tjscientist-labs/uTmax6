@@ -8,6 +8,9 @@ before the window opened, every time, until the file was fixed by hand.
 uTmax6 keeps such a file under another name (data.csv.unusable-<date-time>),
 installs the tube library built into the program, and says so in a message box.
 
+Also here: the header line uTmax writes back on exit names every column once
+(3.01 wrote gm1Del twice; Dean Jenkins' fork fixed it).
+
 Needs a built uTmax:  UTMAX_BIN=build/release/uTmax python3 -m unittest tests.test_tube_library -v
 """
 
@@ -64,6 +67,22 @@ class EmptyFile(Unusable, unittest.TestCase):
 @unittest.skipUnless(have_utmax(), "set UTMAX_BIN to a built uTmax")
 class DamagedRows(Unusable, unittest.TestCase):
     data_csv = HEADER + "12AX7,1,6,2\nnot a tube at all\n"
+
+
+@unittest.skipUnless(have_utmax(), "set UTMAX_BIN to a built uTmax")
+class HeaderWrittenCorrectly(unittest.TestCase):
+    """uTmax rewrites data.csv on exit. 3.01's header named the gm2 tolerance
+    column gm1Del, so the header had gm1Del twice and no gm2Del (Dean Jenkins)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.report, _ = run_sweep(SWEEP, sim_args=["--load", "triode:12AX7"])
+
+    def test_gm_columns(self):
+        header = self.report["data_csv_after"].splitlines()[0].split(",")
+        self.assertEqual(header.count("gm1Del"), 1, header)
+        self.assertEqual(header.count("gm2Del"), 1, header)
+        self.assertEqual(header[header.index("gm2Typ") + 1], "gm2Del")
 
 
 if __name__ == "__main__":

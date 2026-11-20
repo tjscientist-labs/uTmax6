@@ -8,6 +8,24 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **Small fixes** (no change to what uTmax sends or measures):
+  - The `data.csv` header written by `SaveTubeDataFile()` named the gm2
+    tolerance column `gm1Del`, so `gm1Del` appeared twice; now `gm2Del`. From
+    Dean Jenkins' fork. Test: `HeaderWrittenCorrectly` in
+    `tests/test_tube_library.py`.
+  - `GetVg()` read `Vg` before setting it (`if (Vg<0) Vg=0;`, overwritten on
+    the next line); removed.
+  - `readData()` called `d.remove(i,0)`, which removes nothing, for CR, LF and
+    spaces; they were and are dropped by not being appended. Rewritten to say so.
+  - The results of four `QFile::open()` calls (cal.txt create and read, the
+    tube library, both logs) are now checked, with a warning on failure.
+  - `size` in `dr_optimize.cpp` is initialised (printed in the debug output
+    even when the first step fails).
+  - The deliberate fall-through in `Pgm_Flash()` is marked `[[fallthrough]]`.
+  - The idle heartbeat's status messages "Send Ping" / "Ping OK" are now "Idle:
+    discharge sent" / "Idle: uTracer answered": the heartbeat sends End
+    Measurement (`30`), and Dekker's "ping" is a different command (`50`).
+    Comment updated in `tests/test_utmax_smoke.py`.
 - **Fixed: crash at start-up when the tube library has no usable tube.**
   `ReadDataFile()` in `src/mainwindow.cpp` took the first tube
   (`tubeDataVec.at(0)`) without checking there was one, so an empty, header-only

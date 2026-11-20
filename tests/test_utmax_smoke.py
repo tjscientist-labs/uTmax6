@@ -81,8 +81,8 @@ class UTmaxTalksToSimulator(unittest.TestCase):
         self.assertEqual(self.commands[0]["cmd"], "ping_read_adc")
 
     def test_idle_heartbeat_is_end_measurement(self):
-        # uTmax 3.01 sends 30 (end measurement / discharge) every 20 s while idle,
-        # and labels it "Send Ping". Recorded here as current behaviour.
+        # uTmax sends 30 (end measurement / discharge) every 20 s while idle.
+        # 3.01 labelled it "Send Ping"; uTmax6 says "Idle: discharge sent".
         self.assertIn("end_discharge", [c["cmd"] for c in self.commands])
 
     def test_sends_no_unknown_commands(self):
