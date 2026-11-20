@@ -30,7 +30,7 @@ decoded into volts.
    uTmax reports the current to within 0.2 %.
 
 **The rule for every fix:** first make the bug happen in a test, then fix it, then
-put the old code back in a scratch copy and check that the test fails. All 118
+put the old code back in a scratch copy and check that the test fails. All 122
 tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 **What it has found so far:**
@@ -54,6 +54,12 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 ## Done
 
+- **2026-11-20** — **A positive grid only with the extension board.** uTmax used
+  to allow a positive grid voltage on any uTracer6, even though without Ronald
+  Dekker's positive-grid board there is nowhere for it to go. The uTracer
+  reports the board in every reply, so uTmax now checks: without the board,
+  Start refuses a positive grid with a clear message, and the command check
+  refuses any positive grid value that gets past it.
 - **2026-11-20** — **Replies are checked before they are used.** A character
   in a reply that wasn't a hex digit used to be read as 0, and that point was
   stored and plotted as if it had been measured. Now every reply is checked
@@ -194,7 +200,7 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 - [x] **Fix the positive-grid command on the uTracer6**
 - [x] **Handle the positive-grid board's 42-character replies**
 - [ ] Show the grid current from the extension board
-- [ ] Allow a positive grid only when the extension board is fitted
+- [x] **Allow a positive grid only when the extension board is fitted**
 - [x] **Check every command before sending**
 - [x] **Treat a bad echo as an error and discharge**
 - [x] **Check replies (hex, status byte, gain codes)**

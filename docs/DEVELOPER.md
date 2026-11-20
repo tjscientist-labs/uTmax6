@@ -147,7 +147,9 @@ A result string (after `10` or `50`) is checked with `checkReply()`
 (`src/reply_format.h`) before `saveADCInfo()` reads it: 38 or 42 characters as
 the status says, all hex, status `10`/`11` (bit 7 aside) with Dekker's firmware
 (`Firmware=100`), gain codes 0-7. A reply that fails goes the same way as a
-wrong echo. All three paths use `abortAndDischarge()`.
+wrong echo. A reply that passes sets `gridBoardFitted` from status bit 7 (the
+positive-grid board): `SetUpSweepParams()` refuses a positive grid without it,
+and `commandAllowed()` passes it to the command check (`positiveGridOK`). All three paths use `abortAndDischarge()`.
 
 
 `readData()` (line 816) is connected to the port's `readyRead` signal. It appends
@@ -295,6 +297,7 @@ UTMAX_BIN=build/release/uTmax python3 -m unittest discover -s tests -v   # plus 
 | `tests/test_sweeps.py` (+ helper `tests/utmax_run.py`) | Whole sweeps of the real program against the simulator through the test hook: a uTracer6 sweep into 100 kΩ (voltages received, currents reported, heater on then off), a delayed sweep to 600 V (the 425 V fix), the same sweep with the positive-grid board, and a sweep above `VaMax` refused with an entry error. |
 | `tests/test_calibration_defaults.py` | Through the test hook: a `cal.txt` with no calibration factors, and one with unreadable ones, still sweep correctly (anode and grid voltages, currents) and are written back with the defaults; a new install's `cal.txt` has `Vg0`/`Vgm` and none of the obsolete grid keys. |
 | `tests/test_plot_pens.py` | Through the test hook: a three-curve sweep with the style sheet missing runs to the end without crashing (3.01: SIGFPE on the first point), and the same sweep with the style sheet. |
+| `tests/test_positive_grid.py` | Through the test hook: a +2 V to 0 V grid sweep on a uTracer6 without the board is refused at Start and no positive grid word is sent (3.01 sent them); with `--grid-board` it runs, with bit 15 set on the positive words. |
 | `tests/test_bad_reply.py` | Through the test hook with `--garble-every 50`: a reply with `ZZ` in a field part-way through a sweep is not stored, `30` follows within 2 s, and the reason is shown (3.01: the point stored with the field as 0). `checkReply()` cases are in `tests/cpp/test_reply_format.cpp`. |
 | `tests/test_bad_echo.py` | Through the test hook with the simulator's `--bad-echo-on 50`: a wrong echo on a measurement part-way through a sweep is followed by `30` within 2 s, no further measurement, and a message (3.01: idle, no `30`). |
 | `tests/test_command_check.py` | The command rules on their own (`tests/cpp/test_command_check.cpp`: real commands, form, limits, grid formats, heater, settings, 3.01's +100 V command), and through the test hook an 18 V heater on a 15 V supply (`--supply-volts`): nothing out of range is sent, the reason is shown, `30` follows. |

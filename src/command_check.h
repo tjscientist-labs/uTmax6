@@ -18,7 +18,8 @@
  *           (voltage_limit.h, worked out by the caller with the same
  *           conversion that built the command); grid: uTracer3 10-bit, or
  *           12-bit split as uTmax packs it for firmware 203+; uTracer6 any
- *           16-bit word (sign and magnitude); heater 0-3FFH, or E000H plus
+ *           16-bit word (sign and magnitude), but bit 15 (positive) only when
+ *           the positive-grid board is fitted; heater 0-3FFH, or E000H plus
  *           0-3FFH with an external heater supply
  *   30, 50  all four words zero (uTmax sends zeros; the firmware ignores them)
  *   40      words 1-3 zero; heater as above
@@ -40,6 +41,7 @@ struct CommandLimits {
     bool uTracer6 = false;
     bool grid12bit = false;          // uTracer3 with firmware 203 or later
     bool extHeater = false;          // Options > External Heater
+    bool positiveGridOK = false;     // uTracer6 reports the positive-grid board
 };
 
 enum class CmdProblem { None, Length, NotHex, UnknownCode, Settings, Anode, Screen,
@@ -119,6 +121,8 @@ inline CmdProblem checkCommand(const std::string &c, const CommandLimits &lim)
         if (!lim.uTracer6) {
             const unsigned mask = lim.grid12bit ? 0xC3FF : 0x03FF;
             if (g & ~mask) return CmdProblem::Grid;
+        } else if ((g & 0x8000) && !lim.positiveGridOK) {
+            return CmdProblem::Grid;                 // positive grid without the board
         }
         if (!heaterOK(word(c, 4), lim.extHeater)) return CmdProblem::Heater;
         return CmdProblem::None;

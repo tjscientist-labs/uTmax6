@@ -21,6 +21,7 @@ int main() {
     CommandLimits u3;                       // uTracer3, 10-bit grid, no limit below full scale
     CommandLimits u3fw203; u3fw203.grid12bit = true;
     CommandLimits u6; u6.uTracer6 = true;
+    CommandLimits u6board = u6; u6board.positiveGridOK = true;
     CommandLimits u6lim; u6lim.uTracer6 = true; u6lim.maxAnodeWord = 0x132; u6lim.maxScreenWord = 0x132;
     CommandLimits ext; ext.extHeater = true;
     using P = CmdProblem;
@@ -44,8 +45,11 @@ int main() {
     // 3.01's positive-grid bug: for +1 V, %04X printed the negative grid number as
     // eight digits (FFFFFF7E) and the 18-character cut-off left "FFFF" as the grid
     // word and "FF7E" as the heater word. The heater word gives it away.
-    expect("10002F0132FFFFFF7E", P::Heater, u6, "3.01's +1 V command on a uTracer6");
-    expect("10002F0132FFFF006A", P::None, u6, "uTracer6: FFFF on its own is a legal grid word");
+    expect("10002F0132FFFFFF7E", P::Heater, u6board, "3.01's +1 V command, board fitted");
+    expect("10002F0132FFFFFF7E", P::Grid, u6, "3.01's +1 V command, no board");
+    expect("10002F0132FFFF006A", P::None, u6board, "uTracer6 with the board: FFFF (+100 V) is legal");
+    expect("10002F0132FFFF006A", P::Grid, u6, "uTracer6 without the board: positive grid refused");
+    expect("10002F01327FFF006A", P::None, u6, "uTracer6 without the board: -100 V allowed");
     expect("10002F0132FFFF006A", P::Grid, u3, "uTracer3: FFFF grid refused");
 
     // Anode and screen against the limit
@@ -64,7 +68,8 @@ int main() {
     char buf[19];
     for (float v = -150; v <= 150; v += 0.5f) {
         std::snprintf(buf, sizeof buf, "10002F0132%04X006A", utracer6GridWord(v, 100));
-        expect(buf, P::None, u6, "uTracer6 grid word from utracer6GridWord()");
+        expect(buf, P::None, u6board, "uTracer6 grid word from utracer6GridWord(), board fitted");
+        expect(buf, v > 0.0001f ? P::Grid : P::None, u6, "uTracer6 grid word, no board");
     }
 
     // Heater

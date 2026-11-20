@@ -8,6 +8,13 @@ where the fix comes from his fork.
 
 ## 2026-11-20
 
+- **New: a positive grid only with the positive-grid board.** 3.01 allowed a
+  positive grid on any uTracer6. `RxData()` in `src/mainwindow.cpp` now records
+  status bit 7 of each usable reply (`gridBoardFitted`, `src/mainwindow.h`);
+  `SetUpSweepParams()` refuses a positive grid without it, and the command check
+  refuses a uTracer6 grid word with bit 15 set without it (`positiveGridOK` in
+  `src/command_check.h`). Tests: `tests/test_positive_grid.py`; cases in
+  `tests/cpp/test_command_check.cpp`.
 - **New: replies are checked before they are used.** 3.01 read each field of a
   result string with `toInt()`, so a character that wasn't hex became 0 and the
   point was stored, and it indexed an 8-entry gain table with the reply's gain

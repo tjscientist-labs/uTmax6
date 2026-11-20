@@ -410,6 +410,7 @@ private:
     static bool sortbyFreq(const tubeData_t & struct1, const tubeData_t & struct2);
     static bool sortbyAlpha(const tubeData_t & struct1, const tubeData_t & struct2);
     bool on_TubeSelector_currentIndexChanged_enable;
+    bool gridBoardFitted = false;               // status bit 7 in the last reply: positive-grid board
     QString afterDischargeMessage;              // shown after the discharge that follows a refused command
     int savedTubeIndex = -1;                    // Index= from cal.txt, applied after the tube list loads
     bool on_TubeType_currentIndexChanged_enable;

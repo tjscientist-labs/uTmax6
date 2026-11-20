@@ -967,6 +967,9 @@ void MainWindow::RxData()
                                   .arg(replyProblemText(rp), QString::fromLatin1(response)));
             return;
         }
+        // uTmax6: the firmware sets bit 7 of the status when Dekker's positive-grid
+        // board is fitted (it checks RC0 at power-up); remember it for the grid lock.
+        gridBoardFitted = statusHasGridBoard(replyStatus(response.at(0), response.at(1)));
     }
     rxLen=0;
     cmd.clear();
@@ -1851,6 +1854,7 @@ bool MainWindow::commandAllowed()
     lim.uTracer6 = options.uTracer6;
     lim.grid12bit = !options.uTracer6 && calData.Firmware >= 203;
     lim.extHeater = options.ExtHtr;
+    lim.positiveGridOK = gridBoardFitted;
     const CmdProblem p = checkCommand(c, lim);
     if (p == CmdProblem::None) return true;
 
@@ -3469,7 +3473,16 @@ bool MainWindow::SetUpSweepParams() {
     msg.clear();
     float VgMax= calData.VgMax;
     float VgPos = 0;
-    if (options.uTracer6) VgPos=VgMax;
+    // uTmax6: a positive grid needs a uTracer6 with Dekker's positive-grid board,
+    // which the uTracer reports in every reply. 3.01 allowed it on any uTracer6;
+    // without the board the firmware has nowhere to send it.
+    if (options.uTracer6 && gridBoardFitted) VgPos=VgMax;
+    if (options.uTracer6 && !gridBoardFitted && (VgStart > 0 || VgEnd > 0)) {
+        QMessageBox::information(this, "Entry Error",
+            "A positive grid voltage needs Ronald Dekker's positive-grid extension board, "
+            "and the uTracer does not report one. Vg must be 0 or below.");
+        return false;
+    }
     QTextStream(&msg) << "Vg start is " << VgStart << " but must be between " << VgPos << " and " << (-VgMax);
     if (VgStart>VgPos || VgStart < (-VgMax)) {
         QMessageBox::information(this, "Entry Error", msg);
