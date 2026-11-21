@@ -91,30 +91,78 @@ def from_spec(spec):
         r:10k,s:47k        plus a screen resistor
         diode:0.7,1k       diode drop 0.7 V then 1 kOhm
         triode:12AX7       Koren model preset
+
+    Spaces and the case of the keys don't matter. Anything not understood is an
+    error (ValueError), never silently dropped.
     """
     spec = spec.strip()
-    if spec == "open":
+    kind, _, rest = spec.partition(":")
+    kind = kind.strip().lower()
+    if kind == "open" and not rest:
         return Open()
-    if spec.startswith("triode:"):
-        return KorenTriode.preset(spec.split(":", 1)[1].upper())
-    if spec.startswith("diode:"):
-        vf, r = spec.split(":", 1)[1].split(",")
-        return Diode(float(vf), parse_ohms(r))
-    if spec.startswith("r:"):
-        parts = dict(p.split(":", 1) for p in spec.split(","))
-        return Resistor(parse_ohms(parts["r"]),
-                        parse_ohms(parts["s"]) if "s" in parts else None)
-    raise ValueError(f"unknown load spec: {spec!r}")
+    if kind == "triode":
+        tube = rest.strip().upper()
+        if tube not in KorenTriode.PRESETS:
+            raise ValueError(f"no triode preset {tube!r}; known: {', '.join(KorenTriode.PRESETS)}")
+        return KorenTriode.preset(tube)
+    if kind == "diode":
+        fields = [f.strip() for f in rest.split(",")]
+        if len(fields) != 2:
+            raise ValueError(f"diode load needs 'diode:<drop V>,<ohms>': {spec!r}")
+        try:
+            vf = float(fields[0])
+        except ValueError:
+            raise ValueError(f"diode drop is not a number: {fields[0]!r}") from None
+        if vf < 0:
+            raise ValueError(f"diode drop must not be negative: {spec!r}")
+        return Diode(vf, positive_ohms(fields[1]))
+    if kind == "r":
+        parts = {}
+        for item in spec.split(","):
+            key, sep, value = item.partition(":")
+            key = key.strip().lower()
+            if not sep or key not in ("r", "s") or key in parts:
+                raise ValueError(f"resistor load is 'r:<ohms>' or 'r:<ohms>,s:<ohms>': {spec!r}")
+            parts[key] = positive_ohms(value)
+        return Resistor(parts["r"], parts.get("s"))
+    raise ValueError(f"unknown load spec {spec!r}; use open, r:10k, r:10k,s:47k, "
+                     "diode:0.7,1k or triode:12AX7")
 
 
 def parse_ohms(text):
-    text = text.strip().lower()
-    for unit in ("ohms", "ohm", "ω"):
-        if text.endswith(unit):
-            text = text[: -len(unit)].strip()
-    mult = 1.0
-    if text.endswith("k"):
-        mult, text = 1e3, text[:-1]
-    elif text.endswith("m"):
-        mult, text = 1e6, text[:-1]
-    return float(text) * mult
+    """Ohms from '470', '4.7k', '4k7', '1M', '1meg', '2R2', '10 ohm'.
+
+    'M' and 'meg' are megohms. A lone lower-case 'm' is refused: in resistor
+    values it is ambiguous (milli or mega)."""
+    t = text.strip()
+    for unit in ("ohms", "ohm", "Ω", "ω"):
+        if t.lower().endswith(unit.lower()):
+            t = t[: -len(unit)].strip()
+            break
+    if t.lower().endswith("meg"):
+        t = t[:-3] + "M"
+    mults = {"R": 1.0, "r": 1.0, "k": 1e3, "K": 1e3, "M": 1e6}
+    if "m" in t:
+        raise ValueError(f"{text!r}: write M or meg for megohms ('m' is ambiguous)")
+    for letter, mult in mults.items():
+        if letter in t:
+            whole, _, frac = t.partition(letter)
+            if frac and not frac.isdigit():
+                break
+            try:
+                return float((whole or "0") + ("." + frac if frac else "")) * mult
+            except ValueError:
+                break
+    else:
+        try:
+            return float(t)
+        except ValueError:
+            pass
+    raise ValueError(f"not a resistance: {text!r}")
+
+
+def positive_ohms(text):
+    ohms = parse_ohms(text)
+    if not ohms > 0 or math.isinf(ohms):
+        raise ValueError(f"resistance must be above 0: {text!r}")
+    return ohms

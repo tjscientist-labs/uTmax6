@@ -71,6 +71,12 @@ Stop it with Ctrl-C.
 | `diode:0.7,1k` | A diode drop of 0.7 V, then 1 kΩ. |
 | `triode:12AX7` | Norman Koren's triode model with published 12AX7 parameters. |
 
+Resistances can be written `470`, `4.7k`, `4k7`, `2R2`, `1M` or `1meg`; a lone
+lower-case `m` is refused because it could mean milli or mega. Spaces and the case
+of `r:`/`s:` don't matter. A spec, profile or option that isn't understood stops
+the simulator with a one-line error rather than being ignored. A command that
+isn't exactly 18 hex digits is logged as `"error": "not hex"` and not acted on.
+
 The resistor and diode loads match the physical dummy loads used for the first
 hardware checks, so a simulated run and a bench run of the same load can be
 compared directly.

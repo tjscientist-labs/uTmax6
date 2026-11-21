@@ -279,6 +279,44 @@ class UTracerNXT(unittest.TestCase):
         self.assertIn("no positive-grid extension board", r.stderr)
 
 
+class InputChecks(unittest.TestCase):
+    """Bad input is refused cleanly (Ihor Smal's review, 2026-11-21)."""
+
+    def test_command_with_minus_sign_is_not_hex(self):
+        # int("-001", 16) is -1; the old check let it through as 1068 V-ish codes.
+        from utracer_sim import UTracer
+        sim = UTracer(Profile.find("utracer6"), loads.Open(), {}, None)
+        self.assertEqual(sim.handle("10-001000000000000"), "")
+        self.assertEqual(sim.va_res, 0.0)
+        self.assertEqual(sim.handle("00000000-08F010808"), "")
+        self.assertEqual(sim.handle("1_0010000000000000"[:18]), "")
+
+    def test_resistance_formats(self):
+        for text, ohms in [("470", 470), ("4.7k", 4700), ("4k7", 4700), ("1M", 1e6),
+                           ("1meg", 1e6), ("2R2", 2.2), ("10 ohm", 10)]:
+            self.assertAlmostEqual(loads.parse_ohms(text), ohms, msg=text)
+        for text in ("1m", "abc", "4k7k"):
+            with self.assertRaises(ValueError, msg=text):
+                loads.parse_ohms(text)
+
+    def test_load_specs(self):
+        self.assertEqual(loads.from_spec("r:10k, s:47k").rs, 47000)
+        self.assertEqual(loads.from_spec("R:10k,S:47k").rs, 47000)
+        for bad in ("r:0", "r:-1k", "r:10k,x:1", "r:10k,s:1,s:2", "diode:0.7",
+                    "triode:6L6", "resistor:1k", "open:1"):
+            with self.assertRaises(ValueError, msg=bad):
+                loads.from_spec(bad)
+
+    def test_bad_options_are_one_line_errors(self):
+        for args in (["--load", "r:0"], ["--profile", "nope"], ["--reply-delay", "-5"],
+                     ["--garble-every", "0"], ["--supply-volts", "0"]):
+            r = subprocess.run([sys.executable, os.path.join(SIM_DIR, "utracer_sim.py"), *args],
+                               capture_output=True, text=True, timeout=10)
+            self.assertEqual(r.returncode, 2, args)
+            self.assertNotIn("Traceback", r.stderr, args)
+            self.assertIn("error:", r.stderr, args)
+
+
 class Faults(unittest.TestCase):
 
     def test_trip_sets_status_11(self):

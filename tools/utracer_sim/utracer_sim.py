@@ -40,6 +40,7 @@ pseudo-terminals); on Windows, use a virtual COM-port pair (com0com) with the
 import argparse
 import json
 import os
+import re
 import select
 import sys
 import time
@@ -50,6 +51,7 @@ from hardware import ADC_FULL, ADC_VREF, PGA_GAINS, Profile  # noqa: E402
 import loads  # noqa: E402
 
 CMD_LEN = 18         # 9 bytes as hex
+HEX_COMMAND = re.compile(r"[0-9A-F]{18}")
 NAMES = {"00": "settings", "10": "measure", "20": "apply_hold", "30": "end_discharge",
          "40": "heater", "50": "ping_read_adc"}
 AUTO_AVG_FOR_GAIN = [1, 1, 1, 1, 2, 2, 4, 8]   # what uTmax 3.01 assumes for auto-averaging
@@ -104,12 +106,12 @@ class UTracer:
         if getattr(self, "pending_fault", None):
             entry["fault"] = self.pending_fault
             self.pending_fault = None
-        try:
-            words = [int(cmd[i:i + 4], 16) for i in (2, 6, 10, 14)]
-        except ValueError:
+        # int(x, 16) alone would also take '-', '+', '_' and spaces.
+        if not HEX_COMMAND.fullmatch(cmd):
             entry["error"] = "not hex"
             self.write_log(entry)
             return ""
+        words = [int(cmd[i:i + 4], 16) for i in (2, 6, 10, 14)]
 
         reply = ""
         if code == "00":
@@ -245,13 +247,12 @@ class UTracer:
             self.log.flush()
 
 
-def serve(args):
+def serve(args, load):
     profile = Profile.find(args.profile)
     if args.supply_volts is not None:
         profile.supply_v = args.supply_volts      # a weak or sagging power brick
     if args.grid_board and not profile.grid_board_possible:
         raise SystemExit(f"--grid-board: the {profile.name} has no positive-grid extension board")
-    load = loads.from_spec(args.load)
     faults = {"no_reply_after": args.no_reply_after, "garble_every": args.garble_every,
               "trip": args.trip}
     log = open(args.log, "a", encoding="utf-8") if args.log else None
@@ -325,7 +326,26 @@ def main(argv=None):
     ap.add_argument("--grid-board", action="store_true",
                     help="fit Dekker's positive-grid extension board (42-character replies)")
     ap.add_argument("--ready-file", help="write the port path here once listening (for test scripts)")
-    serve(ap.parse_args(argv))
+    args = ap.parse_args(argv)
+    # Check the options here, so a mistake is a one-line message, not a crash
+    # in the middle of a session.
+    profiles = sorted(f[:-5] for f in os.listdir(os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), "profiles")) if f.endswith(".json"))
+    if args.profile not in profiles:
+        ap.error(f"--profile {args.profile}: no such profile; known: {', '.join(profiles)}")
+    try:
+        load = loads.from_spec(args.load)
+    except ValueError as e:
+        ap.error(f"--load: {e}")
+    if not args.reply_delay >= 0:
+        ap.error("--reply-delay must be 0 or more milliseconds")
+    for name in ("no_reply_after", "garble_every", "bad_echo_on"):
+        value = getattr(args, name)
+        if value is not None and value < 1:
+            ap.error(f"--{name.replace('_', '-')} must be 1 or more")
+    if args.supply_volts is not None and not args.supply_volts > 0:
+        ap.error("--supply-volts must be above 0")
+    serve(args, load)
 
 
 if __name__ == "__main__":
