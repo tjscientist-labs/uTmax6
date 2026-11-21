@@ -43,6 +43,14 @@ is used with his permission, as recorded by Nick Barton in `src/mainwindow.cpp`.
 
 - <https://www.normankoren.com/Audio/Tubemodspice_article.html>
 
+## Ihor Smal — review of the software uTracer
+
+Ihor Smal, author of uTracerJS (a browser-based program for the uTracer), ran
+uTracerJS against the software uTracer and sent a code review of it in November
+2026. The simulator fixes made from it name his review in their commit messages.
+
+- <https://boffin.nl/wp/>
+
 ## Libraries
 
 - **Qt 6** (The Qt Company and contributors), LGPLv3.

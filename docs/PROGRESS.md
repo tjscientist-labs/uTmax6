@@ -54,6 +54,15 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 ## Done
 
+- **2026-11-21** — **The software uTracer, reviewed and fixed.** Ihor Smal,
+  who wrote uTracerJS, sent a code review of the simulator. Its bugs were
+  reproduced first, then fixed one change at a time, each with tests: bad
+  commands and settings are refused cleanly instead of crashing or being
+  half-read; currents into very low resistances are now exact, so current
+  limits trip at the right point; a current reading stops at 1023 as the
+  real converter does; a stray character no longer shifts every command
+  after it; the fault options do what they say; and the simulator tidies up
+  after itself.
 - **2026-11-20** — **The calibration values now follow the uTracer model.**
   uTmax works out voltages and currents from a few resistor values on its
   calibration form, and the uTracer3 and uTracer6 have different ones. Ticking
