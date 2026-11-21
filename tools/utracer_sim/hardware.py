@@ -126,8 +126,10 @@ class Profile:
     @staticmethod
     def current_code(amps, r_sense, gain, n_avg):
         """ADC code for a current: volts across the sense resistor, times the PGA
-        gain, summed over n_avg samples (uTmax divides by the averaging count)."""
-        per_sample = amps * r_sense * gain / ADC_VREF * ADC_FULL
+        gain, summed over n_avg samples (uTmax divides by the averaging count).
+        Each sample is a 10-bit reading, so it stops at 1023 however large the
+        current (an overload with a fixed gain), as the real ADC does."""
+        per_sample = min(amps * r_sense * gain / ADC_VREF * ADC_FULL, ADC_FULL)
         return round(per_sample * n_avg), per_sample
 
     @staticmethod

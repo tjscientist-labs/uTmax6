@@ -57,6 +57,22 @@ NAMES = {"00": "settings", "10": "measure", "20": "apply_hold", "30": "end_disch
 AUTO_AVG_FOR_GAIN = [1, 1, 1, 1, 2, 2, 4, 8]   # what uTmax 3.01 assumes for auto-averaging
 
 
+def solve_current(head, r_sense, current_at):
+    """The current i with i = current_at(head - i * r_sense), for a load whose
+    current never falls as its voltage rises. Bisection between 0 and the
+    short-circuit current head / r_sense."""
+    if head <= 0:
+        return 0.0
+    lo, hi = 0.0, head / r_sense
+    for _ in range(80):                      # 2^-80 of the bracket: far below 1 nA
+        mid = 0.5 * (lo + hi)
+        if current_at(max(head - mid * r_sense, 0.0)) > mid:
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
+
+
 class UTracer:
     """The simulated instrument's state and its reaction to each command."""
 
@@ -173,14 +189,17 @@ class UTracer:
         # in the HV switch and sense resistor.
         head_a = self.va_res - p.cathode_volts() - p.v_drop_switch + p.v_drop_diode
         head_s = self.vs_res - p.cathode_volts() - p.v_drop_switch + p.v_drop_diode
-        ia = is_ = 0.0
-        for _ in range(60):                      # fixed-point solve for the sense drop
-            va_t = max(head_a - ia * p.r_sense_a, 0.0)
-            vs_t = max(head_s - is_ * p.r_sense_s, 0.0)
-            na, ns = self.load.currents(va_t, vs_t, self.vg)
-            if abs(na - ia) < 1e-9 and abs(ns - is_) < 1e-9:
-                break
-            ia, is_ = 0.5 * (ia + na), 0.5 * (is_ + ns)
+        # The current through the sense resistor lowers the voltage the load sees.
+        # Each load's current rises with its own electrode's voltage, so the
+        # operating point is found by bisection, which always converges. (A
+        # fixed-point iteration swung instead of settling below about 1.6 ohm on
+        # the uTracer6: Ihor Smal's review, 2026-11-21.)
+        vs_head = max(head_s, 0.0)
+        ia = solve_current(head_a, p.r_sense_a,
+                           lambda v: self.load.currents(v, vs_head, self.vg)[0])
+        va_t = max(head_a - ia * p.r_sense_a, 0.0)
+        is_ = solve_current(head_s, p.r_sense_s,
+                            lambda v: self.load.currents(va_t, v, self.vg)[1])
 
         ia_tube, is_tube = ia, is_
         if p.min_load_ohm:

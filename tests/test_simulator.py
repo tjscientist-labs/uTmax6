@@ -317,6 +317,48 @@ class InputChecks(unittest.TestCase):
             self.assertIn("error:", r.stderr, args)
 
 
+class LowResistanceAndOverload(unittest.TestCase):
+    """The operating point is exact for any load, and a reading stops at 1023."""
+
+    def sim(self, spec, profile="utracer6"):
+        from utracer_sim import UTracer
+        sim = UTracer(Profile.find(profile), loads.from_spec(spec), {}, None)
+        sim.compliance = 0x8F
+        return sim
+
+    def test_current_is_exact_down_to_half_an_ohm(self):
+        for r in (0.5, 1, 1.6, 2.2, 5, 10):
+            for prof in ("utracer6", "utracer3"):
+                sim = self.sim(f"r:{r}", prof)
+                p = sim.p
+                sim.va_res = 30.0 + p.cathode_volts()      # 30 V of head-room
+                want = (30.0 - p.v_drop_switch + p.v_drop_diode) / (r + p.r_sense_a)
+                _, meas = sim.measure()
+                self.assertAlmostEqual(meas["Ia_mA"] / 1000, want, delta=want * 1e-6,
+                                       msg=f"{r} ohm, {prof}")
+
+    def test_trip_at_the_set_limit_with_a_1_ohm_load(self):
+        # 8F with 4.7 ohm: 764.6 mA. The old solver tripped a 1 ohm load at 612 mA.
+        sim = self.sim("r:1")
+        limit = sim.current_limit_amps(sim.p.r_sense_a)
+        for amps, status in ((0.98 * limit, "10"), (1.02 * limit, "11")):
+            sim.va_res = amps * (1 + sim.p.r_sense_a) + sim.p.supply_v
+            self.assertEqual(sim.measure()[1]["status"], status, amps)
+
+    def test_overloaded_reading_saturates_at_1023(self):
+        p = Profile.find("utracer6")
+        code, per_sample = p.current_code(1.0, p.r_sense_a, 200, 1)
+        self.assertEqual(code, 1023)
+        code, _ = p.current_code(1.0, p.r_sense_a, 200, 8)
+        self.assertEqual(code, 8 * 1023)
+
+    def test_overload_in_a_reply(self):
+        sim = self.sim("r:1k")
+        sim.handle("0000000000AF010707")              # gain 200 forced, limit off-scale
+        reply = sim.handle(f"10{sim.p.hv_volts_to_code(200):04X}000000000000")
+        self.assertEqual(int(reply[2:6], 16), 1023)    # was 34467
+
+
 class Faults(unittest.TestCase):
 
     def test_trip_sets_status_11(self):
