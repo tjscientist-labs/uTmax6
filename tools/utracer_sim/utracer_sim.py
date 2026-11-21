@@ -42,6 +42,7 @@ import json
 import os
 import re
 import select
+import signal
 import sys
 import time
 import tty
@@ -278,6 +279,10 @@ class UTracer:
             self.log.flush()
 
 
+def stop_on_signal(signum, frame):
+    raise KeyboardInterrupt
+
+
 def serve(args, load):
     profile = Profile.find(args.profile)
     if args.supply_volts is not None:
@@ -292,9 +297,15 @@ def serve(args, load):
     master, slave = os.openpty()
     tty.setraw(slave)
     slave_name = os.ttyname(slave)
-    if os.path.islink(args.link) or os.path.exists(args.link):
+    # Replace an old link (a simulator that was killed), but never a real file.
+    if os.path.exists(args.link) and not os.path.islink(args.link):
+        raise SystemExit(f"--link {args.link}: a file is already there and is not a link; "
+                         "choose another path")
+    if os.path.islink(args.link):
         os.unlink(args.link)
     os.symlink(slave_name, args.link)
+    # Stopped with SIGTERM (kill, a test's terminate()), clean up as for Ctrl-C.
+    signal.signal(signal.SIGTERM, stop_on_signal)
     print(f"uTracer simulator: profile={profile.name}, load={load.name}"
           + (", positive-grid board fitted" if args.grid_board else ""), flush=True)
     print(f"serial port: {args.link} -> {slave_name}", flush=True)
@@ -345,7 +356,9 @@ def serve(args, load):
     except KeyboardInterrupt:
         pass
     finally:
-        if os.path.islink(args.link):
+        # Remove the link only if it is still ours: a second copy may have
+        # replaced it with its own.
+        if os.path.islink(args.link) and os.readlink(args.link) == slave_name:
             os.unlink(args.link)
 
 

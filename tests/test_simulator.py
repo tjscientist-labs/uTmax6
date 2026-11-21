@@ -9,6 +9,8 @@ echo and the reply.
 
 import json
 import os
+import select
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -121,13 +123,15 @@ class SimulatorProcess:
         tty.setraw(self.fd)
         termios.tcflush(self.fd, termios.TCIOFLUSH)
 
-    def send(self, cmd, expect_reply):
+    def send(self, cmd, expect_reply, reply_len=38):
         os.write(self.fd, cmd.encode())
-        want = len(cmd) + (38 if expect_reply else 0)
+        return self.read(len(cmd) + (reply_len if expect_reply else 0))
+
+    def read(self, want, seconds=3):
+        """Up to `want` characters, waiting at most `seconds` (never blocks)."""
         got = b""
-        deadline = time.time() + 3
+        deadline = time.time() + seconds
         while len(got) < want and time.time() < deadline:
-            import select
             r, _, _ = select.select([self.fd], [], [], 0.1)
             if r:
                 got += os.read(self.fd, 256)
@@ -141,6 +145,7 @@ class SimulatorProcess:
         os.close(self.fd)
         self.proc.terminate()
         self.proc.wait(timeout=5)
+        shutil.rmtree(self.tmp, ignore_errors=True)
 
 
 class Protocol(unittest.TestCase):
@@ -189,9 +194,7 @@ class GridBoard(unittest.TestCase):
     def test_reply_is_42_characters_with_status_90(self):
         sim = SimulatorProcess("--grid-board")
         try:
-            os.write(sim.fd, b"500000000000000000")
-            time.sleep(0.3)
-            out = os.read(sim.fd, 256).decode()
+            out = sim.send("500000000000000000", expect_reply=True, reply_len=42)
             self.assertEqual(len(out), 18 + 42)
             self.assertEqual(out[18:20], "90")
         finally:
@@ -389,6 +392,54 @@ class Framing(unittest.TestCase):
         self.assertEqual(log[0]["cmd"], "incomplete")
         self.assertIn("debug messages on", log[0]["note"])
         self.assertEqual(log[1]["cmd"], "end_discharge")   # not read as "00" settings
+
+
+class LinkHandling(unittest.TestCase):
+    """The --link path (Ihor Smal's review, 2026-11-21)."""
+
+    def test_link_removed_on_sigterm(self):
+        sim = SimulatorProcess()
+        link, tmp = sim.link, sim.tmp
+        os.close(sim.fd)
+        sim.proc.terminate()
+        sim.proc.wait(timeout=5)
+        self.assertFalse(os.path.lexists(link))
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_a_real_file_is_not_deleted(self):
+        tmp = tempfile.mkdtemp(prefix="utsim-")
+        try:
+            path = os.path.join(tmp, "port")
+            with open(path, "w") as f:
+                f.write("keep me")
+            r = subprocess.run([sys.executable, os.path.join(SIM_DIR, "utracer_sim.py"),
+                                "--link", path], capture_output=True, text=True, timeout=10)
+            self.assertNotEqual(r.returncode, 0)
+            with open(path) as f:
+                self.assertEqual(f.read(), "keep me")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_second_copys_link_left_alone(self):
+        first = SimulatorProcess()
+        try:
+            second = subprocess.Popen(
+                [sys.executable, os.path.join(SIM_DIR, "utracer_sim.py"), "--link", first.link,
+                 "--ready-file", first.link + ".ready2"], stdout=subprocess.DEVNULL)
+            for _ in range(100):
+                if os.path.exists(first.link + ".ready2"):
+                    break
+                time.sleep(0.05)
+            theirs = os.readlink(first.link)
+            os.close(first.fd)
+            first.proc.terminate()
+            first.proc.wait(timeout=5)
+            self.assertEqual(os.readlink(first.link), theirs)   # still the second copy's
+            second.terminate()
+            second.wait(timeout=5)
+            self.assertFalse(os.path.lexists(first.link))
+        finally:
+            shutil.rmtree(first.tmp, ignore_errors=True)
 
 
 class Faults(unittest.TestCase):
