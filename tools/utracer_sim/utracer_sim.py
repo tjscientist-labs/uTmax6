@@ -4,8 +4,9 @@ program such as uTmax can be run and tested without the hardware.
 
 How it works
 ------------
-It opens a pseudo-terminal (a pair of connected virtual serial ports) and links
-the host end to a fixed path, /tmp/utracer-sim by default. Point uTmax at that
+On Linux and macOS it opens a pseudo-terminal (a pair of connected virtual
+serial ports) and links the host end to a fixed path, /tmp/utracer-sim by
+default; with --port it uses a named serial port instead. Point uTmax at that
 path (the COM= line in ~/uTmax_files/cal.txt; the Debug dialog lists only real
 serial ports). Then:
 
@@ -33,24 +34,24 @@ the tests see exactly what the host sent.
 Faults can be injected to test the host's error handling: stop replying,
 garble a reply, reply late, or force a current-limit trip.
 
-Run ``utracer_sim.py --help`` for the options. Linux and macOS (it uses
-pseudo-terminals). Windows support, through a virtual COM-port pair such as
-com0com, is planned.
+Run ``utracer_sim.py --help`` for the options. On Linux and macOS it makes a
+virtual port by itself. With --port it uses a named serial port instead (needs
+pyserial): on Windows one port of a com0com virtual pair, or on any system a
+real serial port. See ports.py and README.md.
 """
 
 import argparse
 import json
 import os
 import re
-import select
 import signal
 import sys
 import time
-import tty
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from hardware import ADC_FULL, ADC_VREF, PGA_GAINS, Profile  # noqa: E402
 import loads  # noqa: E402
+from ports import PtyPort, SerialPort  # noqa: E402
 
 CMD_LEN = 18         # 9 bytes as hex
 HEX_COMMAND = re.compile(r"[0-9A-F]{18}")
@@ -307,37 +308,29 @@ def serve(args, load):
     log = open(args.log, "a", encoding="utf-8") if args.log else None
     sim = UTracer(profile, load, faults, log, grid_board=args.grid_board)
 
-    master, slave = os.openpty()
-    tty.setraw(slave)
-    slave_name = os.ttyname(slave)
-    # Replace an old link (a simulator that was killed), but never a real file.
-    if os.path.exists(args.link) and not os.path.islink(args.link):
-        raise SystemExit(f"--link {args.link}: a file is already there and is not a link; "
-                         "choose another path")
-    if os.path.islink(args.link):
-        os.unlink(args.link)
-    os.symlink(slave_name, args.link)
+    if args.port:
+        port = SerialPort(args.port, args.baud)
+    elif os.name == "nt":
+        raise SystemExit("On Windows, give --port: one port of a com0com virtual pair "
+                         "(see README.md, 'On Windows'), or a real serial port.")
+    else:
+        port = PtyPort(args.link)
     # Stopped with SIGTERM (kill, a test's terminate()), clean up as for Ctrl-C.
     signal.signal(signal.SIGTERM, stop_on_signal)
     print(f"uTracer simulator: profile={profile.name}, load={load.name}"
           + (", positive-grid board fitted" if args.grid_board else ""), flush=True)
-    print(f"serial port: {args.link} -> {slave_name}", flush=True)
+    print(f"serial port: {port.description}", flush=True)
     if args.ready_file:
         with open(args.ready_file, "w") as f:
-            f.write(args.link + "\n")
+            f.write(port.host_name + "\n")
 
     buf = ""
     last_char = 0.0
     gap = args.frame_gap / 1000.0
     try:
         while True:
-            r, _, _ = select.select([master], [], [], 0.5)
-            if not r:
-                continue
-            try:
-                data = os.read(master, 256)
-            except OSError:
-                time.sleep(0.1)      # host closed the port; keep waiting for it to reopen
+            data = port.read(0.5)
+            if not data:
                 continue
             now = time.monotonic()
             if buf and gap and now - last_char > gap:
@@ -361,7 +354,7 @@ def serve(args, load):
                         buf = ""
                     continue
                 if ch in "\r\n ":
-                    os.write(master, ch.encode("ascii", errors="replace"))
+                    port.write(ch.encode("ascii", errors="replace"))
                     continue
                 buf += ch
                 out = ch
@@ -369,29 +362,32 @@ def serve(args, load):
                             and sim.n_commands + 1 == args.bad_echo_on)
                 if bad_echo:                 # fault: the last echoed character comes back wrong
                     out = "X" if ch != "X" else "Y"
-                os.write(master, out.encode("ascii", errors="replace"))   # echo, as the firmware does
+                port.write(out.encode("ascii", errors="replace"))   # echo, as the firmware does
                 if len(buf) == CMD_LEN:
                     sim.pending_fault = "bad echo" if bad_echo else None
                     reply = sim.handle(buf.upper())
                     buf = ""
                     if reply:
                         time.sleep(args.reply_delay / 1000.0)
-                        os.write(master, reply.encode("ascii"))
+                        port.write(reply.encode("ascii"))
     except KeyboardInterrupt:
         pass
     finally:
-        # Remove the link only if it is still ours: a second copy may have
-        # replaced it with its own.
-        if os.path.islink(args.link) and os.readlink(args.link) == slave_name:
-            os.unlink(args.link)
+        port.close()
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Software uTracer on a virtual serial port.")
+    ap = argparse.ArgumentParser(description="Software uTracer on a virtual or real serial port.")
     ap.add_argument("--profile", default="utracer6", help="hardware profile in profiles/ (default utracer6)")
     ap.add_argument("--load", default="r:10k",
                     help="device under test: open | r:10k | r:10k,s:47k | diode:0.7,1k | triode:12AX7")
-    ap.add_argument("--link", default="/tmp/utracer-sim", help="path to link the serial port to")
+    ap.add_argument("--link", default="/tmp/utracer-sim",
+                    help="Linux/macOS: path to link the virtual serial port to (default /tmp/utracer-sim)")
+    ap.add_argument("--port", metavar="NAME",
+                    help="use this serial port instead of a virtual one (needs pyserial): "
+                         "on Windows one port of a com0com pair, e.g. COM11; or a real port, "
+                         "e.g. /dev/ttyUSB0. The host program uses the other end.")
+    ap.add_argument("--baud", type=int, default=9600, help="with --port: baud rate (default 9600, as the uTracer)")
     ap.add_argument("--log", help="append a JSON line per command to this file")
     ap.add_argument("--reply-delay", type=float, default=30.0,
                     help="milliseconds before a measurement reply (default 30)")

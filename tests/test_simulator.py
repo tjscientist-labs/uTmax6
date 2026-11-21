@@ -4,7 +4,8 @@ Run from the repository root:   python3 -m unittest discover -s tests -v
 
 The protocol tests start the simulator as a separate process on a pseudo-terminal
 and talk to it exactly as a host program would: send a command, read back the
-echo and the reply.
+echo and the reply. They need Linux or macOS and are skipped on Windows, where
+the conversion tests and the --port checks still run.
 """
 
 import json
@@ -14,10 +15,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import termios
 import time
-import tty
 import unittest
+
+HAVE_PTY = os.name != "nt"
+if HAVE_PTY:
+    import termios
+    import tty
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SIM_DIR = os.path.join(ROOT, "tools", "utracer_sim")
@@ -107,6 +111,8 @@ class SimulatorProcess:
     """Start utracer_sim.py on a pseudo-terminal and talk to it."""
 
     def __init__(self, *args):
+        if not HAVE_PTY:
+            raise unittest.SkipTest("needs pseudo-terminals (Linux or macOS)")
         self.tmp = tempfile.mkdtemp(prefix="utsim-")
         self.link = os.path.join(self.tmp, "port")
         self.logfile = os.path.join(self.tmp, "log.jsonl")
@@ -518,6 +524,96 @@ class PlotCurves(unittest.TestCase):
         r, _ = self.run_plot("--va-max", "0")
         self.assertEqual(r.returncode, 2)
         self.assertNotIn("Traceback", r.stderr)
+
+
+class SerialPortSimulator(SimulatorProcess):
+    """The simulator on a named port (--port), as on Windows with com0com or with
+    a real serial cable. Here a pseudo-terminal stands in for the port: the
+    simulator opens its far end by name through pyserial, the test talks to the
+    near end."""
+
+    def __init__(self, *args):
+        if not HAVE_PTY:
+            raise unittest.SkipTest("needs pseudo-terminals (Linux or macOS)")
+        self.tmp = tempfile.mkdtemp(prefix="utsim-")
+        self.logfile = os.path.join(self.tmp, "log.jsonl")
+        ready = os.path.join(self.tmp, "ready")
+        self.fd, far = os.openpty()
+        tty.setraw(self.fd)
+        tty.setraw(far)
+        self.port_name = os.ttyname(far)
+        self.proc = subprocess.Popen(
+            [sys.executable, os.path.join(SIM_DIR, "utracer_sim.py"), "--port", self.port_name,
+             "--log", self.logfile, "--ready-file", ready, "--reply-delay", "5", *args],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        os.close(far)
+        for _ in range(100):
+            if os.path.exists(ready) or self.proc.poll() is not None:
+                break
+            time.sleep(0.05)
+        self.link = None
+
+    def close(self):
+        os.close(self.fd)
+        self.proc.terminate()
+        self.proc.communicate(timeout=5)
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+
+def have_pyserial():
+    try:
+        import serial  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+@unittest.skipUnless(have_pyserial(), "needs pyserial")
+class PortOption(unittest.TestCase):
+    """--port: the simulator on a named serial port (Windows, or a real cable)."""
+
+    def test_echo_and_reply_through_a_named_port(self):
+        sim = SerialPortSimulator("--load", "r:10k")
+        try:
+            self.assertIsNone(sim.proc.poll(), "simulator exited")
+            cmd = "00000000008F010808"
+            self.assertEqual(sim.send(cmd, expect_reply=False), cmd)
+            out = sim.send("500000000000000000", expect_reply=True)
+            self.assertEqual(out[:18], "500000000000000000")
+            self.assertEqual(len(out), 18 + 38)
+            self.assertEqual(out[18:20], "10")
+            self.assertEqual([e["cmd"] for e in sim.log()], ["settings", "ping_read_adc"])
+        finally:
+            sim.close()
+
+    def test_banner_names_the_port(self):
+        sim = SerialPortSimulator()
+        try:
+            time.sleep(0.2)
+        finally:
+            os.close(sim.fd)
+            sim.proc.terminate()
+            out = sim.proc.communicate(timeout=5)[0]
+            shutil.rmtree(sim.tmp, ignore_errors=True)
+        self.assertIn(f"serial port: {sim.port_name} at 9600 baud, 8N1", out)
+
+    def test_missing_port_is_a_one_line_error(self):
+        name = "COM250" if os.name == "nt" else "/dev/no-such-utracer-port"
+        r = subprocess.run([sys.executable, os.path.join(SIM_DIR, "utracer_sim.py"),
+                            "--port", name], capture_output=True, text=True, timeout=10)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn(name, r.stderr)
+
+
+@unittest.skipUnless(os.name == "nt", "Windows only")
+class OnWindows(unittest.TestCase):
+
+    def test_without_port_says_what_to_do(self):
+        r = subprocess.run([sys.executable, os.path.join(SIM_DIR, "utracer_sim.py")],
+                           capture_output=True, text=True, timeout=10)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("com0com", r.stderr)
 
 
 class Faults(unittest.TestCase):

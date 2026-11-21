@@ -9,9 +9,10 @@ simulator answers the way Ronald Dekker's firmware does. Use it to:
 - see exactly what a host program sends, command by command;
 - check how a host copes with faults: no reply, a corrupted reply, a current-limit trip.
 
-It is plain Python 3 with no extra packages. It runs on Linux (including the
-Raspberry Pi) and macOS. Windows support (through a virtual COM-port pair) is
-planned.
+It is plain Python 3. On Linux (including the Raspberry Pi) and macOS it needs no
+extra packages and makes its own virtual serial port. On Windows, or on a real
+serial cable, it uses the `pyserial` package and a port you name (see
+[On Windows](#on-windows) and [Over a real serial cable](#over-a-real-serial-cable)).
 
 ## Quick start
 
@@ -47,13 +48,50 @@ screen has no current, so its auto-range went to the top gain, 200. `0258` is th
 
 Stop it with Ctrl-C.
 
+## On Windows
+
+Windows has no built-in virtual serial ports, so the simulator sits on one end of
+a **com0com** pair (a free, open-source virtual null-modem driver,
+<https://sourceforge.net/projects/com0com/>) and the host program uses the other
+end. This is how Ronald Dekker's own Windows program, or uTmax for Windows, can be
+run against the simulator and every command it sends logged.
+
+1. Install Python 3 from python.org, then pyserial:
+   `py -m pip install pyserial`
+2. Install com0com. Its setup program makes a linked pair of ports; give them
+   ordinary names, for example **COM10** and **COM11**. (If a host program only
+   lists low port numbers, use free ones such as COM5 and COM6.)
+3. Start the simulator on one end:
+   `py tools\utracer_sim\utracer_sim.py --port COM11 --load r:10k --log sim.jsonl`
+4. Point the host program at the other end, **COM10**, at 9600 baud, and use it as
+   with a uTracer. `sim.jsonl` gets one decoded line per command.
+
+Everything else (profiles, loads, faults, the log) works as on Linux. This has
+been tested with the `--port` code on Linux and with the Windows build machine's
+Python, but not yet with com0com and Dekker's program on a Windows PC.
+
+## Over a real serial cable
+
+`--port` also takes a real serial port, so the simulator can run on one computer
+(a Raspberry Pi, a Linux laptop) and the host program on another, joined by two
+USB-serial adapters and a null-modem cable (TX to RX both ways, ground to ground):
+
+```sh
+python3 tools/utracer_sim/utracer_sim.py --port /dev/ttyUSB0 --load triode:12AX7 --log sim.jsonl
+```
+
+The host program then sees an ordinary serial device at 9600 baud, 8N1, as a
+uTracer's own USB-serial adapter gives. `--baud` changes the rate if needed.
+
 ## Options
 
 | Option | Meaning |
 |---|---|
 | `--profile utracer6` | Which hardware to model (`utracer6`, `utracer3` or `utracer_nxt`; files in `profiles/`). |
 | `--load SPEC` | The device under test, see below. Default `r:10k`. |
-| `--link PATH` | Where to put the serial port. Default `/tmp/utracer-sim`. |
+| `--link PATH` | Linux and macOS: where to put the virtual serial port. Default `/tmp/utracer-sim`. |
+| `--port NAME` | Use this serial port instead of a virtual one (needs pyserial): one end of a com0com pair on Windows (`COM11`), or a real port (`/dev/ttyUSB0`). The host program uses the other end. |
+| `--baud N` | With `--port`: the baud rate. Default 9600, as the uTracer. |
 | `--log FILE` | Append one JSON line per command. |
 | `--reply-delay MS` | Delay before a measurement reply. Default 30 ms. |
 | `--no-reply-after N` | Fault: the connection is lost after N commands: no echo, no reply, nothing acted on. Each lost command is logged as `"fault": "connection lost"`. |
@@ -163,4 +201,5 @@ window against the simulator and checks what it sends; give it the program with
   logged as `incomplete` with their meaning once the pause after them passes
   `--frame-gap` (100 ms). A pause inside a command always starts a new one, so a
   stray character can't shift every command after it.
-- Linux and macOS only.
+- On Windows it needs `--port` and a com0com pair; not yet tried there with
+  Dekker's program.

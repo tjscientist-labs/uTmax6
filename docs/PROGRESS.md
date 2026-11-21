@@ -54,6 +54,13 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 
 ## Done
 
+- **2026-11-21** — **The software uTracer runs on Windows.** It can now sit on
+  a named serial port: on Windows one end of a com0com virtual port pair, with
+  the host program on the other end. That is how Ronald Dekker's own program
+  can be run against it and every command it sends logged and checked, as
+  Ihor Smal suggested. The same option works with a real serial cable, so
+  the simulator can run on a Raspberry Pi and the host program on another
+  computer. Not yet tried with Dekker's program on a Windows PC.
 - **2026-11-21** — **The software uTracer, reviewed and fixed.** Ihor Smal,
   who wrote uTracerJS, sent a code review of the simulator. Its bugs were
   reproduced first, then fixed one change at a time, each with tests: bad
@@ -221,7 +228,9 @@ tests run on every push, on Linux x64 and arm64; Windows builds too.
 ### Software
 - [x] Simulator: Dekker's protocol, a tube model, fault injection, command log
 - [x] Simulator: uTracer6 constants checked against Dekker's page
-- [ ] Simulator: Windows support; reservoir droop
+- [x] **Simulator: Windows support** (`--port`, a com0com pair; also a real serial cable)
+- [ ] Simulator on Windows: tried with com0com and Dekker's program
+- [ ] Simulator: reservoir droop
 - [x] **Tests that drive a full sweep (test hook in uTmax)**
 - [ ] Tests that record 3.01's present behaviour
 - [x] **Fix the positive-grid command on the uTracer6**

@@ -1,7 +1,8 @@
 # Builds uTmax6 on every push and pull request:
 #   Linux x64, Linux arm64 (the same CPU family as a Raspberry Pi 5) and Windows x64.
 # On Linux it then runs the tests in tests/: the simulator's own tests, and
-# uTmax started without a window against the software uTracer. A green run
+# uTmax started without a window against the software uTracer. On Windows it
+# runs the simulator tests that don't need a virtual port pair. A green run
 # does not mean the program has been tested on a real uTracer.
 name: build
 
@@ -22,7 +23,7 @@ jobs:
       - name: Install Qt 6, Qt SerialPort and GSL
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools libqt6serialport6-dev libgsl-dev build-essential qt6-qpa-plugins
+          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools libqt6serialport6-dev libgsl-dev build-essential qt6-qpa-plugins python3-serial
       - name: Build
         run: |
           mkdir build && cd build
@@ -59,6 +60,14 @@ jobs:
           mkdir build && cd build
           qmake6 ../src/uTmax.pro CONFIG+=release
           mingw32-make -j"$(nproc)"
+      # The simulator on Windows: its conversion tests and the --port checks.
+      # The end-to-end tests need a virtual port pair (com0com), which a CI
+      # machine can't install, so they are skipped here.
+      - name: Simulator tests (Windows Python)
+        shell: pwsh
+        run: |
+          python -m pip install pyserial
+          python -m unittest tests.test_simulator -v
       - uses: actions/upload-artifact@v4
         with:
           name: uTmax6-windows
