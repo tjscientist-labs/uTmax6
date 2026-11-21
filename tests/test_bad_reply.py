@@ -10,8 +10,8 @@ src/reply_format.h): length, hex, a known status byte with Dekker's firmware,
 gain codes 0-7. A reply that fails stops the sweep with End Measurement (30)
 and a message, like a wrong echo.
 
-The simulator's --garble-every 50 puts "ZZ" into the screen-current field of
-the reply to command 50, a measurement part-way through the sweep.
+The simulator's --garble-every 10 puts "ZZ" into the anode-current field of
+the 10th reply, a measurement part-way through the sweep (21 replies in all).
 
 Needs a built uTmax:  UTMAX_BIN=build/release/uTmax python3 -m unittest tests.test_bad_reply -v
 """
@@ -33,7 +33,7 @@ class GarbledReplyDuringASweep(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.report, cls.commands = run_sweep(
-            SWEEP, sim_args=["--load", "triode:12AX7", "--garble-every", "50"])
+            SWEEP, sim_args=["--load", "triode:12AX7", "--garble-every", "10"])
         cls.bad = next(i for i, c in enumerate(cls.commands) if c.get("fault") == "garbled")
 
     def test_the_fault_hit_a_measurement(self):

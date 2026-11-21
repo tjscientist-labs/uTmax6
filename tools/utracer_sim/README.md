@@ -54,8 +54,8 @@ Stop it with Ctrl-C.
 | `--link PATH` | Where to put the serial port. Default `/tmp/utracer-sim`. |
 | `--log FILE` | Append one JSON line per command. |
 | `--reply-delay MS` | Delay before a measurement reply. Default 30 ms. |
-| `--no-reply-after N` | Fault: stop replying after N commands (tests a lost connection). |
-| `--garble-every N` | Fault: corrupt every Nth reply. |
+| `--no-reply-after N` | Fault: the connection is lost after N commands: no echo, no reply, nothing acted on. Each lost command is logged as `"fault": "connection lost"`. |
+| `--garble-every N` | Fault: every Nth reply (counting replies only) has `ZZ` in its anode-current field. |
 | `--trip` | Fault: report a current-limit trip on every measurement. |
 | `--bad-echo-on N` | Fault: the last character of command N is echoed wrongly (an `X`). The simulator still acts on the command and replies, as a uTracer would if the line corrupted the echo on its way back. Logged as `"fault": "bad echo"`. |
 | `--supply-volts V` | The supply (power brick) voltage, instead of the profile's 18.5 V / 19.5 V. For a weak or sagging brick: uTmax scales the heater to the supply it reads. |

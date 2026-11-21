@@ -473,11 +473,23 @@ class Faults(unittest.TestCase):
         finally:
             sim.close()
 
+    def test_garble_counts_replies_and_hits_the_anode_current(self):
+        sim = SimulatorProcess("--garble-every", "2")
+        try:
+            sim.send("300000000000000000", False)          # no reply: not counted
+            self.assertEqual(sim.send("500000000000000000", True)[18:20], "10")
+            out = sim.send("500000000000000000", True)
+            self.assertEqual(out[20:22], "ZZ")
+            self.assertEqual(sim.log()[-1]["fault"], "garbled")
+        finally:
+            sim.close()
+
     def test_no_reply_after_n(self):
         sim = SimulatorProcess("--no-reply-after", "1")
         try:
             self.assertEqual(len(sim.send("500000000000000000", True)), 56)
-            self.assertEqual(len(sim.send("500000000000000000", True)), 18)   # echo only
+            self.assertEqual(sim.send("500000000000000000", True), "")   # no echo either
+            self.assertEqual(sim.log()[-1]["fault"], "connection lost")
         finally:
             sim.close()
 

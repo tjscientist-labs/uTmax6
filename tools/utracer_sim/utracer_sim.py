@@ -93,6 +93,7 @@ class UTracer:
         self.faults = faults
         self.log = log
         self.n_commands = 0
+        self.n_replies = 0
         # Settings (command 00). Power-on defaults: 200 mA-class limit, 1 sample, auto gain.
         self.compliance = 0x8F
         self.averaging = 1
@@ -256,15 +257,15 @@ class UTracer:
         return out
 
     def apply_faults(self, reply, entry):
+        """--garble-every N: every Nth reply (replies counted, not commands) has
+        "ZZ" in the anode-current field, which every measurement fills."""
         f = self.faults
         if not reply:
             return reply
-        if f.get("no_reply_after") is not None and self.n_commands > f["no_reply_after"]:
-            entry["fault"] = "no reply"
-            return ""
-        if f.get("garble_every") and self.n_commands % f["garble_every"] == 0:
+        self.n_replies += 1
+        if f.get("garble_every") and self.n_replies % f["garble_every"] == 0:
             entry["fault"] = "garbled"
-            return reply[:10] + "ZZ" + reply[12:]
+            return reply[:2] + "ZZ" + reply[4:]
         return reply
 
     def log_incomplete(self, text):
@@ -289,8 +290,7 @@ def serve(args, load):
         profile.supply_v = args.supply_volts      # a weak or sagging power brick
     if args.grid_board and not profile.grid_board_possible:
         raise SystemExit(f"--grid-board: the {profile.name} has no positive-grid extension board")
-    faults = {"no_reply_after": args.no_reply_after, "garble_every": args.garble_every,
-              "trip": args.trip}
+    faults = {"garble_every": args.garble_every, "trip": args.trip}
     log = open(args.log, "a", encoding="utf-8") if args.log else None
     sim = UTracer(profile, load, faults, log, grid_board=args.grid_board)
 
@@ -336,6 +336,17 @@ def serve(args, load):
                 buf = ""
             last_char = now
             for ch in data.decode("ascii", errors="replace"):
+                if args.no_reply_after is not None and sim.n_commands >= args.no_reply_after:
+                    # Fault: the connection is gone. Nothing comes back, not even
+                    # the echo, and nothing is acted on; each lost command is logged.
+                    buf += ch
+                    if len(buf) == CMD_LEN:
+                        sim.n_commands += 1
+                        sim.write_log({"t": round(time.time(), 3), "n": sim.n_commands,
+                                       "rx": buf, "cmd": NAMES.get(buf[:2], "unknown"),
+                                       "fault": "connection lost"})
+                        buf = ""
+                    continue
                 if ch in "\r\n ":
                     os.write(master, ch.encode("ascii", errors="replace"))
                     continue
