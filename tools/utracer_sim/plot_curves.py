@@ -106,7 +106,7 @@ def main(argv=None):
                    f'stroke="{c}" stroke-width="3"/>')
         out.append(f'<text x="{L + pw + 38}" y="{ly + 4}">Vg {vg:g} V</text>')
     out.append("</svg>")
-    with open(a.out, "w") as f:
+    with open(a.out, "w", encoding="utf-8") as f:
         f.write("\n".join(out) + "\n")
     print(f"wrote {a.out}: {len(grids)} curves, Ia up to {ia_max:.2f} mA")
 

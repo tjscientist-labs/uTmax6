@@ -505,7 +505,10 @@ class PlotCurves(unittest.TestCase):
             out = os.path.join(tmp, "c.svg")
             r = subprocess.run([sys.executable, os.path.join(SIM_DIR, "plot_curves.py"),
                                 "--out", out, *args], capture_output=True, text=True, timeout=20)
-            svg = open(out).read() if os.path.exists(out) else ""
+            svg = ""
+            if os.path.exists(out):
+                with open(out, encoding="utf-8") as f:
+                    svg = f.read()
             return r, svg
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
