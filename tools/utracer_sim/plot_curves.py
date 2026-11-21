@@ -35,17 +35,27 @@ def nice_step(span, target=6):
     return 10 * mag
 
 
-def main():
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    # "--grids -1,-2" would be read as an unknown option; join it as "--grids=-1,-2".
+    for k in range(len(argv) - 1):
+        if argv[k] == "--grids":
+            argv[k:k + 2] = ["--grids=" + argv[k + 1]]
+            break
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--load", default="triode:12AX7", help="load spec, as for utracer_sim.py")
     ap.add_argument("--va-max", type=float, default=300.0, help="anode sweep end, volts")
     ap.add_argument("--grids", default="0,-0.5,-1,-1.5,-2,-2.5,-3",
                     help="grid voltages, comma-separated")
     ap.add_argument("--out", default="curves.svg")
-    a = ap.parse_args()
-
-    load = from_spec(a.load)
-    grids = [float(g) for g in a.grids.split(",")]
+    a = ap.parse_args(argv)
+    if not a.va_max > 0:
+        ap.error("--va-max must be above 0")
+    try:
+        load = from_spec(a.load)
+        grids = [float(g) for g in a.grids.split(",")]
+    except ValueError as e:
+        ap.error(str(e))
     steps = 120
     curves = []
     for vg in grids:
@@ -56,9 +66,12 @@ def main():
             pts.append((va, ia * 1000.0))          # mA
         curves.append((vg, pts))
 
-    ia_max = max(p[1] for _, pts in curves for p in pts) or 1.0
+    ia_max = max(p[1] for _, pts in curves for p in pts)
+    if not ia_max > 1e-6:          # (almost) nothing flows: draw a 0-1 mA frame
+        ia_max = 1.0
     ystep = nice_step(ia_max)
-    ytop = ystep * (int(ia_max / ystep) + 1)
+    yticks = int(ia_max / ystep) + 1
+    ytop = ystep * yticks
     xstep = nice_step(a.va_max)
     pw, ph = W - L - R, H - T - B
 
@@ -70,16 +83,15 @@ def main():
            f'<rect width="{W}" height="{H}" fill="#ffffff"/>',
            f'<text x="{W / 2}" y="24" text-anchor="middle" font-size="15" font-weight="bold">'
            f'Simulated anode curves: {load.name}</text>']
-    v = 0.0
-    while v <= a.va_max + 1e-9:
+    # Ticks are counted with integers, so a tiny step can't loop for ever.
+    for k in range(int(a.va_max / xstep + 1e-9) + 1):
+        v = k * xstep
         out.append(f'<line x1="{x(v):.1f}" y1="{T}" x2="{x(v):.1f}" y2="{T + ph}" stroke="#e3e3e3"/>')
         out.append(f'<text x="{x(v):.1f}" y="{T + ph + 18}" text-anchor="middle">{v:g}</text>')
-        v += xstep
-    i = 0.0
-    while i <= ytop + 1e-9:
+    for k in range(yticks + 1):
+        i = k * ystep
         out.append(f'<line x1="{L}" y1="{y(i):.1f}" x2="{L + pw}" y2="{y(i):.1f}" stroke="#e3e3e3"/>')
         out.append(f'<text x="{L - 8}" y="{y(i) + 4:.1f}" text-anchor="end">{i:g}</text>')
-        i += ystep
     out.append(f'<rect x="{L}" y="{T}" width="{pw}" height="{ph}" fill="none" stroke="#333"/>')
     out.append(f'<text x="{L + pw / 2}" y="{H - 18}" text-anchor="middle">Anode voltage Va (V)</text>')
     out.append(f'<text transform="translate(20 {T + ph / 2}) rotate(-90)" text-anchor="middle">'

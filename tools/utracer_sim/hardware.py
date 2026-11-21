@@ -119,7 +119,9 @@ class Profile:
         """RMS heater volts. The PWM duty is (Vrms/Vsupply)^2, scaled to 1023."""
         if word & 0xE000 == 0xE000:            # uTmax "external heater" encoding
             return None
-        duty = min(word, ADC_FULL) / ADC_FULL
+        # Only the low 10 bits drive the PWM (Dekker: "the upper 6 bits of the
+        # data word are not used"); clamping instead made 0x2000 full heater.
+        duty = (word & ADC_FULL) / ADC_FULL
         return self.supply_v * math.sqrt(duty)
 
     # ---- currents ---------------------------------------------------------------

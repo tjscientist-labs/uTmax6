@@ -145,13 +145,15 @@ class UTracer:
             entry["decoded"] = {"compliance_hex": f"{b[0]:02X}",
                                 "limit_anode_mA": round(1000 * self.current_limit_amps(self.p.r_sense_a), 1),
                                 "averaging": "auto" if avg == 0x40 else avg,
-                                "gain_screen": "auto" if b[2] == 8 else PGA_GAINS[b[2] & 7],
-                                "gain_anode": "auto" if b[3] == 8 else PGA_GAINS[b[3] & 7]}
+                                # measure() uses a fixed gain for 0-7 and auto-range
+                                # for anything above; the log says the same.
+                                "gain_screen": "auto" if b[2] >= 8 else PGA_GAINS[b[2]],
+                                "gain_anode": "auto" if b[3] >= 8 else PGA_GAINS[b[3]]}
         elif code in ("10", "20"):
             self.set_voltages(words)
             entry["decoded"] = self.describe()
-            if self.grid_note:
-                entry["warning"] = self.grid_note
+            if self.notes:
+                entry["warning"] = "; ".join(self.notes)
             if code == "10":
                 reply, meas = self.measure()
                 entry["measured"] = meas
@@ -160,7 +162,7 @@ class UTracer:
             self.vg = 0.0
             entry["decoded"] = {"action": "reservoirs discharged, grid to 0 V"}
         elif code == "40":
-            self.vf = self.p.heater_code_to_volts(words[3]) or 0.0
+            self.set_heater(words[3])
             entry["decoded"] = {"heater_Vrms": round(self.vf, 2)}
         elif code == "50":
             reply = self.format_reply("90" if self.grid_board else "10", 0, 0, 0, 0, 0, 0)
@@ -176,14 +178,24 @@ class UTracer:
         self.va_res = self.p.hv_code_to_volts(va & 0x3FF)
         self.vs_res = self.p.hv_code_to_volts(vs & 0x3FF)
         self.vg = self.p.grid_code_to_volts(vg)
-        self.grid_note = None
+        self.notes = []
+        # The model's rating (profile max_hv_volts) is measured at the tube, as
+        # uTmax's VaMax is; the reservoir also carries the cathode offset.
+        for name, v in (("anode", self.va_res), ("screen", self.vs_res)):
+            if v - self.p.cathode_volts() > self.p.max_hv + 1:
+                self.notes.append(f"{name} {v - self.p.cathode_volts():.0f} V is above the "
+                                  f"{self.p.name}'s {self.p.max_hv:g} V rating")
         if self.vg > 0 and not self.grid_board:
             # Without the extension board a positive grid word drives nothing.
-            self.grid_note = f"positive grid {self.vg:+.2f} V requested but no extension board: grid at 0 V"
+            self.notes.append(f"positive grid {self.vg:+.2f} V requested but no extension board: grid at 0 V")
             self.vg = 0.0
-        hv = self.p.heater_code_to_volts(vf)
-        if hv is not None:
-            self.vf = hv
+        self.set_heater(vf)
+
+    def set_heater(self, word):
+        """The same in 10, 20 and 40: uTmax's external-heater word (E000 set)
+        leaves the internal heater off."""
+        hv = self.p.heater_code_to_volts(word)
+        self.vf = 0.0 if hv is None else hv
 
     def describe(self):
         return {"Va_reservoir_V": round(self.va_res, 2), "Vs_reservoir_V": round(self.vs_res, 2),

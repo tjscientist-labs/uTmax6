@@ -442,6 +442,79 @@ class LinkHandling(unittest.TestCase):
             shutil.rmtree(first.tmp, ignore_errors=True)
 
 
+class SmallFixes(unittest.TestCase):
+    """The smaller points of Ihor Smal's review (2026-11-21)."""
+
+    def sim(self, profile="utracer6"):
+        from utracer_sim import UTracer
+        return UTracer(Profile.find(profile), loads.from_spec("r:10k"), {}, None)
+
+    def test_heater_word_is_masked_to_10_bits(self):
+        p = Profile.find("utracer6")
+        self.assertEqual(p.heater_code_to_volts(0x2000), 0.0)    # was full heater
+        self.assertAlmostEqual(p.heater_code_to_volts(0x03FF), p.supply_v)
+
+    def test_external_heater_word_is_the_same_in_40_and_10(self):
+        for code in ("40", "10", "20"):
+            sim = self.sim()
+            sim.handle(command("40", vf=500))
+            self.assertGreater(sim.vf, 0)
+            sim.handle(command(code, vf=0xE000 | 500))
+            self.assertEqual(sim.vf, 0.0, code)
+
+    def test_gain_bytes_above_8_logged_as_auto(self):
+        import io
+        from utracer_sim import UTracer
+        buf = io.StringIO()
+        sim = UTracer(Profile.find("utracer6"), loads.Open(), {}, buf)
+        sim.handle("00000000008F01090A")
+        d = json.loads(buf.getvalue())["decoded"]
+        self.assertEqual((d["gain_screen"], d["gain_anode"]), ("auto", "auto"))
+
+    def test_above_the_rating_is_warned(self):
+        import io
+        from utracer_sim import UTracer
+        buf = io.StringIO()
+        sim = UTracer(Profile.find("utracer3"), loads.Open(), {}, buf)
+        sim.handle(command("20", va=1023))                       # 358 V reservoir: fine
+        sim.handle(command("20", va=1023, vs=1023))
+        for line in buf.getvalue().splitlines():
+            self.assertNotIn("warning", json.loads(line))
+        buf = io.StringIO()
+        sim = UTracer(Profile.find("utracer6"), loads.Open(), {}, buf)
+        sim.handle(command("20", va=1023))                       # 1069 V - 19.5 V
+        self.assertIn("1000 V rating", json.loads(buf.getvalue())["warning"])
+
+
+class PlotCurves(unittest.TestCase):
+
+    def run_plot(self, *args):
+        tmp = tempfile.mkdtemp(prefix="utsim-plot-")
+        try:
+            out = os.path.join(tmp, "c.svg")
+            r = subprocess.run([sys.executable, os.path.join(SIM_DIR, "plot_curves.py"),
+                                "--out", out, *args], capture_output=True, text=True, timeout=20)
+            svg = open(out).read() if os.path.exists(out) else ""
+            return r, svg
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_tiny_currents_do_not_hang(self):
+        r, svg = self.run_plot("--grids=-20")                    # 12AX7 cut off
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("</svg>", svg)
+
+    def test_negative_grids_without_equals(self):
+        r, svg = self.run_plot("--grids", "-1,-2")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Vg -2 V", svg)
+
+    def test_va_max_zero_is_an_error(self):
+        r, _ = self.run_plot("--va-max", "0")
+        self.assertEqual(r.returncode, 2)
+        self.assertNotIn("Traceback", r.stderr)
+
+
 class Faults(unittest.TestCase):
 
     def test_trip_sets_status_11(self):
