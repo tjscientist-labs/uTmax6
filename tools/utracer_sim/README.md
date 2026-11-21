@@ -26,8 +26,9 @@ uTracer simulator: profile=utracer6, load=resistor(anode=10000 ohm)
 serial port: /tmp/utracer-sim -> /dev/pts/4
 ```
 
-Point uTmax at `/tmp/utracer-sim`: set `COM=/tmp/utracer-sim` in
-`~/uTmax_files/cal.txt`, or choose it in uTmax's Debug dialog. Every command uTmax
+Point uTmax at `/tmp/utracer-sim` by setting `COM=/tmp/utracer-sim` in
+`~/uTmax_files/cal.txt` (the Debug dialog lists only real serial ports, so it
+can't select the simulator). Every command uTmax
 sends is then written to `/tmp/sim.jsonl`, one line each, decoded:
 
 ```json
@@ -35,13 +36,14 @@ sends is then written to `/tmp/sim.jsonl`, one line each, decoded:
  "decoded": {"Va_reservoir_V": 237.17, "Vs_reservoir_V": 0.0, "Vg_V": 0.0, "Vf_Vrms": 0.0},
  "measured": {"Ia_mA": 21.7567, "Is_mA": 0.0, "Va_tube_V": 217.57, "gain_a": 20,
               "gain_s": 200, "averaging": 1, "status": "10"},
- "tx": "1001A200150000000000E30000016B028B0407"}
+ "tx": "1001A200150000000000E30000016B02580407"}
 ```
 
-(A real line: anode code `00E3` is 237 V on the reservoir with the draft
-uTracer6 profile; less the 19.5 V supply and the sense-resistor drop, the 10 kΩ
+(A real line: anode code `00E3` is 237 V on the reservoir with the uTracer6
+profile; less the 19.5 V supply and the sense-resistor drop, the 10 kΩ
 load sees 217.6 V and draws 21.8 mA. The auto-range picked a gain of 20. The
-screen has no current, so its auto-range went to the top gain, 200.)
+screen has no current, so its auto-range went to the top gain, 200. `0258` is the
+−85 V rail.)
 
 Stop it with Ctrl-C.
 
@@ -125,9 +127,12 @@ The simulator does the same. For a measurement it:
 The simulator is there to catch mistakes in the host program. If it borrowed its
 conversion factors from uTmax it would agree with uTmax's mistakes. So every
 hardware constant lives in `profiles/<model>.json` with a note of where it came
-from. Both profiles use Dekker's published values: the uTracer3 profile from his
-protocol description (it shows that uTmax's default anode divider reads about
-2.4 % low before calibration), the uTracer6 profile from his uTracer6
+from. The uTracer6 and NXT profiles use only Dekker's published values. The
+uTracer3 profile uses his protocol description where it gives a value (it shows
+that uTmax's default anode divider reads about 2.4 % low before calibration) and
+uTmax 3.01's figures for the rest, each marked as such, with the negative rail an
+unverified placeholder; those entries can't catch a uTmax mistake until they are
+checked. The uTracer6 profile from his uTracer6
 construction log (1 MΩ / 4.7 kΩ dividers, 4.7 Ω sense resistors, 16-bit
 sign-and-magnitude grid word, and the −85 V rail through 200 kΩ / 4.7 kΩ as the
 negative rail in the reply), and the uTracer NXT profile from his NXT log §8–9

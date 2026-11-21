@@ -6,7 +6,8 @@ How it works
 ------------
 It opens a pseudo-terminal (a pair of connected virtual serial ports) and links
 the host end to a fixed path, /tmp/utracer-sim by default. Point uTmax at that
-path (the COM= line in ~/uTmax_files/cal.txt, or the Debug dialog). Then:
+path (the COM= line in ~/uTmax_files/cal.txt; the Debug dialog lists only real
+serial ports). Then:
 
 * every character received is echoed straight back, as the uTracer does;
 * when a full command (18 hex characters) has arrived it is decoded and acted
@@ -33,8 +34,8 @@ Faults can be injected to test the host's error handling: stop replying,
 garble a reply, reply late, or force a current-limit trip.
 
 Run ``utracer_sim.py --help`` for the options. Linux and macOS (it uses
-pseudo-terminals); on Windows, use a virtual COM-port pair (com0com) with the
-``--port`` option once that is added.
+pseudo-terminals). Windows support, through a virtual COM-port pair such as
+com0com, is planned.
 """
 
 import argparse
@@ -199,7 +200,7 @@ class UTracer:
 
     def describe(self):
         return {"Va_reservoir_V": round(self.va_res, 2), "Vs_reservoir_V": round(self.vs_res, 2),
-                "Vg_V": round(self.vg, 3), "Vf_Vrms": round(self.vf, 2)}
+                "Vg_V": round(self.vg, 3) + 0.0, "Vf_Vrms": round(self.vf, 2)}   # + 0.0: no "-0.0"
 
     def measure(self):
         """One pulse: solve the load's currents, then encode the 38-char reply."""
