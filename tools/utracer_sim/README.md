@@ -60,6 +60,8 @@ Stop it with Ctrl-C.
 | `--bad-echo-on N` | Fault: the last character of command N is echoed wrongly (an `X`). The simulator still acts on the command and replies, as a uTracer would if the line corrupted the echo on its way back. Logged as `"fault": "bad echo"`. |
 | `--supply-volts V` | The supply (power brick) voltage, instead of the profile's 18.5 V / 19.5 V. For a weak or sagging brick: uTmax scales the heater to the supply it reads. |
 | `--grid-board` | Fit Dekker's positive-grid extension board (uTracer6): status bit 7 set, 42-character replies. Without it, a positive grid word is ignored and logged as a warning. |
+| `--frame-gap MS` | A pause longer than this inside a command throws away what came before it and starts a new command (logged as `incomplete`). Default 100 ms; 0 turns it off. |
+| `--ready-file FILE` | Write the port path to FILE once the port is open (for test scripts). |
 
 ### Loads
 
@@ -151,6 +153,9 @@ window against the simulator and checks what it sends; give it the program with
 
 - Reservoir droop during a pulse is not modelled.
 - Auto-averaging uses the rule uTmax assumes; the firmware's real rule is to be checked.
-- Nick Barton's own firmware commands (`51`–`59`, for his uTracer3 replacement
-  chip) are logged as `unknown` and not answered.
+- Nick Barton's own firmware commands, for his uTracer3 replacement chip, are
+  not answered. The short ones uTmax sends (`54`, `59`, `5556`, `5758`) are
+  logged as `incomplete` with their meaning once the pause after them passes
+  `--frame-gap` (100 ms). A pause inside a command always starts a new one, so a
+  stray character can't shift every command after it.
 - Linux and macOS only.

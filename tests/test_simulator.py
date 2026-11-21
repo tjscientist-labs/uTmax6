@@ -359,6 +359,38 @@ class LowResistanceAndOverload(unittest.TestCase):
         self.assertEqual(int(reply[2:6], 16), 1023)    # was 34467
 
 
+class Framing(unittest.TestCase):
+    """A pause inside a command starts a new one (Ihor Smal's review, 2026-11-21)."""
+
+    def setUp(self):
+        self.sim = SimulatorProcess("--frame-gap", "100")
+
+    def tearDown(self):
+        self.sim.close()
+
+    def test_stray_character_does_not_shift_later_commands(self):
+        os.write(self.sim.fd, b"3")                     # a stray character
+        time.sleep(0.3)
+        termios.tcflush(self.sim.fd, termios.TCIFLUSH)   # drop its echo
+        out = self.sim.send("500000000000000000", expect_reply=True)
+        self.assertEqual(out[:18], "500000000000000000")
+        self.assertEqual(out[18:20], "10")
+        log = self.sim.log()
+        self.assertEqual(log[0]["cmd"], "incomplete")
+        self.assertEqual(log[0]["rx"], "3")
+        self.assertEqual(log[1]["cmd"], "ping_read_adc")
+
+    def test_short_firmware_command_is_logged_by_name(self):
+        os.write(self.sim.fd, b"5556")                  # uTmax with Firmware >= 200
+        time.sleep(0.3)
+        termios.tcflush(self.sim.fd, termios.TCIFLUSH)
+        self.sim.send("300000000000000000", expect_reply=False)
+        log = self.sim.log()
+        self.assertEqual(log[0]["cmd"], "incomplete")
+        self.assertIn("debug messages on", log[0]["note"])
+        self.assertEqual(log[1]["cmd"], "end_discharge")   # not read as "00" settings
+
+
 class Faults(unittest.TestCase):
 
     def test_trip_sets_status_11(self):

@@ -52,6 +52,12 @@ import loads  # noqa: E402
 
 CMD_LEN = 18         # 9 bytes as hex
 HEX_COMMAND = re.compile(r"[0-9A-F]{18}")
+# Short commands uTmax sends to Nick Barton's replacement uTracer3 firmware
+# (Firmware >= 200 in cal.txt; mainwindow.cpp). Logged, not answered.
+SHORT_COMMANDS = {"54": "Nick Barton firmware: read version",
+                  "59": "Nick Barton firmware: bootloader / reset",
+                  "5556": "Nick Barton firmware: debug messages on",
+                  "5758": "Nick Barton firmware: debug messages off"}
 NAMES = {"00": "settings", "10": "measure", "20": "apply_hold", "30": "end_discharge",
          "40": "heater", "50": "ping_read_adc"}
 AUTO_AVG_FOR_GAIN = [1, 1, 1, 1, 2, 2, 4, 8]   # what uTmax 3.01 assumes for auto-averaging
@@ -260,6 +266,12 @@ class UTracer:
             return reply[:10] + "ZZ" + reply[12:]
         return reply
 
+    def log_incomplete(self, text):
+        """Characters that never made a full 18-character command."""
+        self.write_log({"t": round(time.time(), 3), "rx": text, "cmd": "incomplete",
+                        "note": SHORT_COMMANDS.get(text.upper(),
+                                                   "fewer than 18 characters, then a pause")})
+
     def write_log(self, entry):
         if self.log:
             self.log.write(json.dumps(entry) + "\n")
@@ -291,6 +303,8 @@ def serve(args, load):
             f.write(args.link + "\n")
 
     buf = ""
+    last_char = 0.0
+    gap = args.frame_gap / 1000.0
     try:
         while True:
             r, _, _ = select.select([master], [], [], 0.5)
@@ -301,6 +315,15 @@ def serve(args, load):
             except OSError:
                 time.sleep(0.1)      # host closed the port; keep waiting for it to reopen
                 continue
+            now = time.monotonic()
+            if buf and gap and now - last_char > gap:
+                # A pause in the middle of a command: whatever came before was a
+                # stray character or a short command (Nick Barton's firmware uses
+                # 2- and 4-character ones). Start a new command, so one bad
+                # character can't shift every command after it.
+                sim.log_incomplete(buf)
+                buf = ""
+            last_char = now
             for ch in data.decode("ascii", errors="replace"):
                 if ch in "\r\n ":
                     os.write(master, ch.encode("ascii", errors="replace"))
@@ -344,6 +367,9 @@ def main(argv=None):
                     help="the supply (power brick) voltage, instead of the profile's (fault: a weak supply)")
     ap.add_argument("--grid-board", action="store_true",
                     help="fit Dekker's positive-grid extension board (42-character replies)")
+    ap.add_argument("--frame-gap", type=float, default=100.0, metavar="MS",
+                    help="a pause longer than this (ms) inside a command starts a new one; "
+                         "0 = never (default 100)")
     ap.add_argument("--ready-file", help="write the port path here once listening (for test scripts)")
     args = ap.parse_args(argv)
     # Check the options here, so a mistake is a one-line message, not a crash
@@ -356,6 +382,8 @@ def main(argv=None):
         load = loads.from_spec(args.load)
     except ValueError as e:
         ap.error(f"--load: {e}")
+    if not args.frame_gap >= 0:
+        ap.error("--frame-gap must be 0 or more milliseconds")
     if not args.reply_delay >= 0:
         ap.error("--reply-delay must be 0 or more milliseconds")
     for name in ("no_reply_after", "garble_every", "bad_echo_on"):
