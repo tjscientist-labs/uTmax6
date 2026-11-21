@@ -159,6 +159,7 @@ class Protocol(unittest.TestCase):
     def test_every_character_is_echoed_and_settings_get_no_reply(self):
         cmd = "00000000008F010808"
         self.assertEqual(self.sim.send(cmd, expect_reply=False), cmd)
+        self.assertEqual(self.sim.read(1, seconds=0.3), "")     # and nothing after the echo
 
     def test_ping_returns_38_characters_after_the_echo(self):
         out = self.sim.send("500000000000000000", expect_reply=True)
@@ -174,7 +175,9 @@ class Protocol(unittest.TestCase):
         reply = out[18:]
         ia_code, gain = int(reply[2:6], 16), [1, 2, 5, 10, 20, 50, 100, 200][int(reply[34:36], 16)]
         ia_ma = ia_code / gain * (1000 * 5.0 / 1023) / p.r_sense_a
-        expected = (p.hv_code_to_volts(code) - p.supply_v) / (10000 + p.r_sense_a) * 1000
+        # Independent of the code under test: Dekker's uTracer6 figures (log §8:
+        # 1.0448 V per count, cathode at the 19.5 V supply; §10: 4.7 ohm sense).
+        expected = (1.0448 * code - 19.5) / (10000 + 4.7) * 1000
         self.assertAlmostEqual(ia_ma, expected, delta=expected * 0.02)
         entry = [e for e in self.sim.log() if e["cmd"] == "measure"][-1]
         self.assertEqual(entry["measured"]["status"], "10")
@@ -183,6 +186,8 @@ class Protocol(unittest.TestCase):
         p = Profile.find("utracer6")
         code = p.hv_volts_to_code(300)
         self.sim.send(command("20", va=code), expect_reply=False)
+        out = self.sim.send("500000000000000000", expect_reply=True)
+        self.assertEqual(int(out[18 + 18:18 + 22], 16), code)  # charged first
         self.sim.send("300000000000000000", expect_reply=False)
         out = self.sim.send("500000000000000000", expect_reply=True)
         self.assertEqual(int(out[18 + 18:18 + 22], 16), 0)   # Va field back to zero
